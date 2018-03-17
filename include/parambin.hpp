@@ -54,15 +54,10 @@ class ParamBinFileException : public ParamBinException
 
 
 
-const std::string EMPTY_CHARS(2,' ');
-using strPair = std::pair<std::string,std::string>;
-using strMap = std::map<std::string,std::string>;
-using mIntStrMap = std::multimap<int,std::string>;
-using intStrPair = std::pair<int,std::string>;
-using intStrItPair = std::pair<mIntStrMap::iterator,mIntStrMap::iterator>;
 
 class ParamBin;
-using paramBinMap = std::map<std::string,ParamBin>;
+using ParamMap = std::map<std::string,std::string>; 
+using BinMap = std::map<std::string,ParamBin>;
 
 class ParamBin{
 
@@ -87,8 +82,8 @@ class ParamBin{
         ParamBin& getBin(const std::string& name);
         const ParamBin& getBin(const std::string& name) const;
 
-        const strMap& getParams() const {return paramMap;}
-        const paramBinMap& getBins() const {return binMap;}
+        ParamMap getParamMap() const; 
+        const BinMap& getBinMap() const {return parambins;}
 
         std::vector<double> getDblVec(const std::string&) const;
         std::vector<int> getIntVec(const std::string&) const;
@@ -121,9 +116,14 @@ class ParamBin{
 
     private:
 
-        strMap paramMap; 
+        static const std::string EMPTY_CHARS;
+        using strPair = std::pair<std::string,std::string>;
+        using strMap = std::map<std::string,std::string>;
+
+        ParamMap params; 
+        BinMap parambins;
+
         strMap scaleMap;
-        paramBinMap binMap;
         std::shared_ptr<scales::SIscalings> si_obj;
 
         std::string getStrParam(const std::string& name) const;
@@ -135,6 +135,7 @@ class ParamBin{
         std::string processKey(const std::string& name);
         double processScale(const std::string& key,const std::string& scale,double val) const;
 };
+
 
 template<typename T> 
 std::string convertToString(T val) 
@@ -219,7 +220,7 @@ void ParamBin::set(const std::string& name,T val)
 {
     std::string strVal = convertToString(val);
     std::string key = processKey(name);
-    paramMap[key] = strVal;
+    params[key] = strVal;
 }
 
 // ADD A PARAM SET TO THE PARAM BIN
@@ -228,13 +229,13 @@ void ParamBin::set(const std::string& name,std::vector<T>& val)
 {
     std::string strVal = convertToString(val);
     std::string key = processKey(name);
-    paramMap[key] = strVal;
+    params[key] = strVal;
 }
 
 template<>
 void inline ParamBin::set(const std::string& name,ParamBin bin)
 {
-    binMap[name] = bin;
+    parambins[name] = bin;
 }
 
 template<typename T>

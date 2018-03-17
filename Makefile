@@ -27,11 +27,12 @@ TEST1=test/test1
 TEST2=test/test2
 TEST3=test/test3
 TEST4=test/test4
+TEST5=test/test5
 
 
 all: dylib run
 
-tests: test1 test2 test3 test4
+tests: test1 test2 test3 test4 test5
 
 dylib: ${OBJECTS}
 	${CC} -dynamiclib \
@@ -70,6 +71,10 @@ test4: ${TEST4}
 ${TEST4}: ${OBJECTS} test/test4.o 
 	${CC} ${DEBUG} ${LDFLAGS} ${OBJECTS} test/test4.o -o ${TEST4} 
 
+test5: ${TEST5}
+
+${TEST5}: ${OBJECTS} test/test5.o 
+	${CC} ${DEBUG} ${LDFLAGS} ${OBJECTS} test/test5.o -o ${TEST5} 
 
 install: dylib
 	./bin/install.py ${TARGET_LIB} ${CURRENT_VERSION}

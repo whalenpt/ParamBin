@@ -44,7 +44,7 @@ int main(int argc,char* argv[])
       std::string filename = "bleblabblueblah.cows";
       std::cout << "Try to open the nonexistant file " + filename << std::endl;
       std::cout << std::endl;
-      input.setParams(filename);
+      input.loadParamFile(filename);
   } catch(ParamBinFileException& e) {
       std::cout << "A ParamBinFileException was caught. Here's the message:" << std::endl;
       std::cout << e.what() << std::endl;

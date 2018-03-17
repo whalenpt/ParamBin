@@ -13,6 +13,24 @@
 namespace pw{
 
 
+const std::string ParamBin::EMPTY_CHARS = std::string(2,' ');
+
+ParamMap ParamBin::getParamMap() const {
+    ParamMap map(params);
+    for(auto it = scaleMap.cbegin(); it != scaleMap.cend(); it++)
+    {
+        auto search = map.find(it->first);
+        if(search != map.end()){
+            std::string name = it->first;
+            std::string val = search->second + " [" + it->second + "]" ;
+            map.erase(search);
+            map[name] = val;
+        }
+    }
+    return map;
+}
+
+
 ParamBin::ParamBin() : si_obj(new scales::SIscalings()) {} 
 ParamBin::ParamBin(const char* FILE) : 
     si_obj(new scales::SIscalings()) 
@@ -31,9 +49,9 @@ std::string ParamBin::processKey(const std::string& name)
     key = pw::removeSubString(key,'(',')');
     key = pw::eatWhiteSpace(key);
 
-    auto pit = paramMap.find(key);
-    if(pit != paramMap.cend())
-        paramMap.erase(pit);
+    auto pit = params.find(key);
+    if(pit != params.cend())
+        params.erase(pit);
     auto scaleit = scaleMap.find(key);
     if(scaleit != scaleMap.cend())
         scaleMap.erase(scaleit);
@@ -155,7 +173,9 @@ void ParamBin::loadParamFile(const char* FILE)
         throw ParamBinFileException(FILE);
     }
 
-    paramBinMap gn_map;
+    BinMap gn_map;
+    using mIntStrMap = std::multimap<int,std::string>;
+
     mIntStrMap gn_level_map;
     std::set<int> gn_levels;
     std::vector<std::string> group_names;
@@ -193,6 +213,8 @@ void ParamBin::loadParamFile(const char* FILE)
 
             ParamBin group = readNextGroup(line_feed,fin);
             gn_map[gname] = group;
+
+            using intStrPair = std::pair<int,std::string>;
             gn_level_map.insert(intStrPair(group_names.size(),gname));
             gn_levels.insert(group_names.size());
         }
@@ -223,8 +245,8 @@ void ParamBin::loadParamFile(const char* FILE)
 void ParamBin::printBin(std::ostream& os) const{
     static int depth = 0;
     os << std::endl;
-    auto it = paramMap.cbegin();
-    while(it != paramMap.cend()){
+    auto it = params.cbegin();
+    while(it != params.cend()){
         std::string name;
         for(int i = 0; i < depth; i++)
             name += EMPTY_CHARS;
@@ -238,8 +260,8 @@ void ParamBin::printBin(std::ostream& os) const{
         it++;
     }
     os << std::endl;
-    auto bit = binMap.cbegin();
-    while(bit != binMap.cend()){
+    auto bit = parambins.cbegin();
+    while(bit != parambins.cend()){
         std::string group_name;
         for(int i = 0; i < depth; i++)
             group_name += EMPTY_CHARS;
@@ -260,15 +282,15 @@ std::ostream& operator<<(std::ostream& os,const ParamBin& bin)
 
 bool ParamBin::inBin(const std::string& name) const
 {
-    if(paramMap.count(name) > 0 || binMap.count(name) > 0) 
+    if(params.count(name) > 0 || parambins.count(name) > 0) 
         return true;
     return false;
 }
 
 int ParamBin::size(const std::string& name) const
 {
-    auto it = paramMap.find(name);
-    if(it != paramMap.cend())
+    auto it = params.find(name);
+    if(it != params.cend())
         return pw::countCharacters(it->second,',') + 1;
     else
         return 0;
@@ -276,7 +298,7 @@ int ParamBin::size(const std::string& name) const
 
 bool ParamBin::empty() const
 {
-    if(paramMap.empty()  && binMap.empty())
+    if(params.empty()  && parambins.empty())
         return true;
     else
         return false;
@@ -285,8 +307,8 @@ bool ParamBin::empty() const
 std::string ParamBin::getStrParam(const std::string& name) const
 {
     std::string strval;
-    auto it = paramMap.find(name);
-    if(it != paramMap.cend())
+    auto it = params.find(name);
+    if(it != params.cend())
         strval = (*it).second;
     else
         throw ParamBinKeyException(name);
@@ -295,8 +317,8 @@ std::string ParamBin::getStrParam(const std::string& name) const
 
 ParamBin& ParamBin::getBin(const std::string& name) 
 {
-    auto it = binMap.find(name);
-    if(it != binMap.cend())
+    auto it = parambins.find(name);
+    if(it != parambins.cend())
         return it->second;
     else
         throw ParamBinKeyException(name);
@@ -304,8 +326,8 @@ ParamBin& ParamBin::getBin(const std::string& name)
 
 const ParamBin& ParamBin::getBin(const std::string& name) const
 {
-    auto it = binMap.find(name);
-    if(it != binMap.cend())
+    auto it = parambins.find(name);
+    if(it != parambins.cend())
         return it->second;
     else
         throw ParamBinKeyException(name);
@@ -314,8 +336,8 @@ const ParamBin& ParamBin::getBin(const std::string& name) const
 bool ParamBin::clear(const std::string& name)
 {
     if(inBin(name)){
-        paramMap.erase(name);
-        binMap.erase(name);
+        params.erase(name);
+        parambins.erase(name);
         scaleMap.erase(name);
         return true;
     }
@@ -325,8 +347,8 @@ bool ParamBin::clear(const std::string& name)
 
 void ParamBin::clearAll() 
 {
-    paramMap.clear();
-    binMap.clear();
+    params.clear();
+    parambins.clear();
     scaleMap.clear();
 }
 
@@ -426,7 +448,7 @@ void ParamBin::setBool(const std::string& name,bool val){
 
 void ParamBin::setBin(const std::string& name,ParamBin bin)
 {
-    binMap[name] = bin;
+    parambins[name] = bin;
 }
 
 std::vector<std::string> ParamBin::inBin(const std::vector<std::string>& nameVec) const
