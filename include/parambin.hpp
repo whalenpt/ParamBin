@@ -53,8 +53,6 @@ class ParamBinFileException : public ParamBinException
 };
 
 
-
-
 class ParamBin;
 using ParamMap = std::map<std::string,std::string>; 
 using BinMap = std::map<std::string,ParamBin>;
@@ -117,12 +115,13 @@ class ParamBin{
     private:
 
         static const std::string EMPTY_CHARS;
-        using strPair = std::pair<std::string,std::string>;
-        using strMap = std::map<std::string,std::string>;
 
         ParamMap params; 
         BinMap parambins;
 
+        using strMap = std::map<std::string,std::string>;
+
+        strMap aliasMap;
         strMap scaleMap;
         std::shared_ptr<scales::SIscalings> si_obj;
 

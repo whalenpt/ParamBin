@@ -45,20 +45,20 @@ ParamBin::ParamBin(std::string fileName) :
 
 std::string ParamBin::processKey(const std::string& name)
 {
-    std::string key = pw::removeSubString(name,'[',']');
-    key = pw::removeSubString(key,'(',')');
-    key = pw::eatWhiteSpace(key);
+//    std::string key = pw::removeSubString(name,'[',']');
+//    key = pw::removeSubString(key,'(',')');
+//    key = pw::eatWhiteSpace(key);
 
-    auto pit = params.find(key);
-    if(pit != params.cend())
-        params.erase(pit);
-    auto scaleit = scaleMap.find(key);
-    if(scaleit != scaleMap.cend())
-        scaleMap.erase(scaleit);
+    std::string key = pw::eatWhiteSpace(pw::removeSubString(name,'(',')'));
 
-    std::string scale = pw::subString(name,'[',']'); 
-    if(!scale.empty())
-        scaleMap[key] = pw::eatWhiteSpace(scale);
+    // Check the parameter map for the parameter key
+//    auto scaleit = scaleMap.find(key);
+//    if(scaleit != scaleMap.cend())
+//        scaleMap.erase(scaleit);
+
+//    std::string scale = pw::subString(name,'[',']'); 
+//    if(!scale.empty())
+//        scaleMap[key] = pw::eatWhiteSpace(scale);
 
     return key;
 }
