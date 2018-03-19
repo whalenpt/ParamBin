@@ -85,9 +85,7 @@ int main(int argc,char* argv[])
   std::cout << "GROUP2 var2 value = " << const_bin.getStr("var2") << std::endl << std::endl;
   std::cout << input << std::endl << std::endl;
 
-  // This will fail to compile
-  std::cout << "TRY TO ADD A VALUE FROM reference to a constant bin " << std::endl;
-  //const_bin.set("var3","value");
+//  const_bin.set("var3","value");   //This will fail to compile!
 
 
   return 0;

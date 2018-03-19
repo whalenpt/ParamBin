@@ -17,10 +17,8 @@
 namespace pw{
 
 
-//std::string readNextLine(std::ifstream& fin);
 std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed);
 void lineToNameVal(const std::string& line_feed,std::string& name,std::string& vals);
-
 
 class ParamBinException : public std::exception
 {
@@ -57,9 +55,8 @@ class ParamBinFileException : public ParamBinException
 };
 
 
-using ParamMap = std::map<std::string,std::string>; 
-
 class ParamBin;
+using ParamMap = std::map<std::string,std::string>; 
 using BinMap = std::map<std::string,ParamBin*>;
 
 namespace scales{ class SIscalings; }
@@ -147,8 +144,6 @@ class ParamBin{
 
         void printBin(std::ostream& os) const;
         std::string processKey(const std::string& name);
-
-//        static const std::string EMPTY_CHARS;
 
 //        strMap aliasMap;
 //        strMap scaleMap;

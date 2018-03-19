@@ -27,13 +27,6 @@ ParamBin::ParamBin(const ParamBin& bin) : parent_bin(bin.parent_bin),
     }
 }
 
-//ParamBin::ParamBin(const std::string& name,ParamBin* parent) : 
-//    parent_bin(parent),
-//    si_obj(new scales::SIscalings())
-//{
-//    parent_bin->setBin(name,this);
-//}
-
 ParamBin::ParamBin() : 
     parent_bin(nullptr),
     si_obj(new scales::SIscalings())
@@ -180,19 +173,6 @@ void lineToNameVal(const std::string& line_feed,std::string& name,std::string& v
     vals = pw::eatWhiteSpace(vals);
 }
 
-//ParamBin* ParamBin::readNextGroup(std::string& line_feed,std::ifstream& fin){
-//    ParamBin* group = new ParamBin;
-//    line_feed = readNextLine(fin);
-//    while(fin && pw::countCharacters(line_feed,':') > 0){
-//        group.setParam(line_feed);
-//        line_feed = readNextLine(fin);
-//    }
-//    return group;
-//}
-
-
-
-
 void ParamBin::loadParamFile(const char* FILE)
 {
     std::ifstream fin(FILE);
@@ -238,86 +218,6 @@ void ParamBin::loadParamFile(const char* FILE)
         }
     }
 }
-
-/*
-void ParamBin::loadParamFile(const char* FILE)
-{
-    std::ifstream fin(FILE);
-    if(!fin.is_open())
-    {
-        fin.clear();
-        throw ParamBinFileException(FILE);
-    }
-
-    BinMap gn_map;
-    using mIntStrMap = std::multimap<int,std::string>;
-
-    mIntStrMap gn_level_map;
-    std::set<int> gn_levels;
-    std::vector<std::string> group_names;
-
-    std::vector<int> levels;
-    levels.push_back(-1);
-    int cLev;
-
-    std::string line_feed = readNextLine(fin);
-    while(fin){
-        if(pw::countCharacters(line_feed,':') > 0){
-            setParam(line_feed);
-            line_feed = readNextLine(fin);
-        }
-        else{
-            
-            cLev = countFirstChar(line_feed," ");
-
-            std::string group_name(line_feed);
-            group_name = pw::eatWhiteSpace(group_name);
-
-            if(cLev > levels.back())
-                levels.push_back(cLev);
-            else if(cLev == levels.back())
-                group_names.pop_back();
-            else if(cLev < levels.back()){
-                group_names.pop_back();
-                while(levels.back() > cLev){
-                    group_names.pop_back();
-                    levels.pop_back();
-                }
-            }
-            group_names.push_back(group_name);
-            std::string gname = pw::joinVector(group_names,'/'); 
-
-            ParamBin group = readNextGroup(line_feed,fin);
-            gn_map[gname] = group;
-
-            using intStrPair = std::pair<int,std::string>;
-            gn_level_map.insert(intStrPair(group_names.size(),gname));
-            gn_levels.insert(group_names.size());
-        }
-    }
-    fin.close();
-
-    // Start with children groups that have the most parents first
-    for(auto rit=gn_levels.crbegin(); rit != gn_levels.crend(); rit++){
-        int level = *rit;
-        auto it_pair = gn_level_map.equal_range(level);
-        for(auto it = it_pair.first; it != it_pair.second; it++){
-            // Check for child groups and set to the parents
-            if(std::next(rit) != gn_levels.rend()){
-                std::string gname = it->second;
-                std::string parent_name = stripFirst(gname,'/');
-                std::string child_name = stripLast(gname,'/');
-                ParamBin* child_bin = gn_map[gname];
-                ParamBin* parent_bin = gn_map[parent_name];
-                parent_bin->set(child_name,child_bin);
-                gn_map[parent_name] = parent_bin;
-            } //If a group is not a child, then set it to the ParamBin
-            else
-                set(it->second,gn_map[it->second]);
-        }
-    }
-}
-*/
 
 void ParamBin::printBin(std::ostream& os) const{
 
@@ -521,10 +421,11 @@ std::vector<std::string> ParamBin::getStrVec(const std::string& name) const
 
 
 void ParamBin::setBool(const std::string& name,bool val){
-    if(val)
-        set(name,"on");
-    else
-        set(name,"off");
+    set(name,(val ? "on" : "off"));
+//    if(val)
+//        set(name,"on");
+//    else
+//        set(name,"off");
 }
 
 
@@ -539,6 +440,7 @@ void ParamBin::setBin(const std::string& name,ParamBin bin)
 // Pass by pointers simply transfers ownership of pointer
 void ParamBin::setBin(const std::string& name,ParamBin* bin)
 {
+    bin->parent_bin = this;
     child_bins[name] = bin;
 }
 
