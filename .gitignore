@@ -1,1 +1,1 @@
-*.swp *.o bin/run test/test[0-5].o *.dylib
+*.swp *.o bin/run test/test[0-5].o *.dylib test/*.swp

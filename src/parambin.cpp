@@ -203,16 +203,14 @@ void ParamBin::loadParamFile(const char* FILE)
     }
 
     // Levels determine parent/child relationships, root level is -1 with a parent=nullptr
-    int level = -1;
-    ParamBin* parent = this;
 
+    int level = -1;
     std::vector<int> levels;
     std::vector<ParamBin*> parents;
 
     levels.push_back(level);
-    parents.push_back(parent);
+    parents.push_back(this);
 
-//    ParamBin* current_bin = this;
     std::string line_feed;
     while(readNextLine(fin,line_feed))
     {
@@ -235,10 +233,7 @@ void ParamBin::loadParamFile(const char* FILE)
             }
             levels.push_back(level);
             ParamBin* sub_bin = new ParamBin;
-
-            parent = parents.back();
-            parent->setBin(group_name,sub_bin);
-
+            parents.back()->setBin(group_name,sub_bin);
             parents.push_back(sub_bin);
         }
     }
