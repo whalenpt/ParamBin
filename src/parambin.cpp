@@ -13,54 +13,83 @@
 namespace pw{
 
 
-const std::string ParamBin::EMPTY_CHARS = std::string(2,' ');
 
-ParamMap ParamBin::getParamMap() const {
-    ParamMap map(params);
-    for(auto it = scaleMap.cbegin(); it != scaleMap.cend(); it++)
+ParamBin::ParamBin(const ParamBin& bin) : parent_bin(bin.parent_bin),
+    params(bin.params),
+    child_bins(),
+    si_obj(bin.si_obj)
+{
+    for(auto it = bin.child_bins.cbegin() ; it != bin.child_bins.cend(); it++)
     {
-        auto search = map.find(it->first);
-        if(search != map.end()){
-            std::string name = it->first;
-            std::string val = search->second + " [" + it->second + "]" ;
-            map.erase(search);
-            map[name] = val;
-        }
+        std::string bin_name = it->first;
+        ParamBin* child_bin = new ParamBin(*it->second);
+        child_bins[bin_name] = child_bin;
     }
-    return map;
+}
+
+//ParamBin::ParamBin(const std::string& name,ParamBin* parent) : 
+//    parent_bin(parent),
+//    si_obj(new scales::SIscalings())
+//{
+//    parent_bin->setBin(name,this);
+//}
+
+ParamBin::ParamBin() : 
+    parent_bin(nullptr),
+    si_obj(new scales::SIscalings())
+{
 }
 
 
-ParamBin::ParamBin() : si_obj(new scales::SIscalings()) {} 
 ParamBin::ParamBin(const char* FILE) : 
+    parent_bin(nullptr),
     si_obj(new scales::SIscalings()) 
 {
     loadParamFile(FILE);
 }
+
 ParamBin::ParamBin(std::string fileName) : 
+    parent_bin(nullptr),
     si_obj(new scales::SIscalings()) 
 {
     loadParamFile(fileName);
 }
 
+ParamBin::~ParamBin() 
+{
+    for(auto it = child_bins.begin() ; it != child_bins.end(); it++)
+        delete it->second;
+}
+
+ParamMap ParamBin::getParamMap() const {
+    return params;
+}
+
+//ParamMap ParamBin::getParamMap() const {
+//    ParamMap map(params);
+//    for(auto it = scaleMap.cbegin(); it != scaleMap.cend(); it++)
+//    {
+//        auto search = map.find(it->first);
+//        if(search != map.end()){
+//            std::string name = it->first;
+//            std::string val = search->second + " [" + it->second + "]" ;
+//            map.erase(search);
+//            map[name] = val;
+//        }
+//    }
+//    return map;
+//}
+                     
+
 std::string ParamBin::processKey(const std::string& name)
 {
-//    std::string key = pw::removeSubString(name,'[',']');
-//    key = pw::removeSubString(key,'(',')');
-//    key = pw::eatWhiteSpace(key);
-
     std::string key = pw::eatWhiteSpace(pw::removeSubString(name,'(',')'));
-
-    // Check the parameter map for the parameter key
-//    auto scaleit = scaleMap.find(key);
-//    if(scaleit != scaleMap.cend())
-//        scaleMap.erase(scaleit);
+    return key;
 
 //    std::string scale = pw::subString(name,'[',']'); 
 //    if(!scale.empty())
 //        scaleMap[key] = pw::eatWhiteSpace(scale);
 
-    return key;
 }
 
 template<>
@@ -68,20 +97,20 @@ void ParamBin::get(const std::string& key,double& val) const
 {
     std::string strval = getStrParam(key);
     val = convertFromString<double>(strval);
-    auto it = scaleMap.find(key);
-    if(it != scaleMap.cend()){
-        val = processScale(key,it->second,val);
-    }
+//    auto it = scaleMap.find(key);
+//    if(it != scaleMap.cend()){
+//        val = processScale(key,it->second,val);
+//    }
 }
 
-double ParamBin::processScale(const std::string& key,const std::string& scale,double val) const
-{
-    if(si_obj->ValidScaling(scale))
-        return si_obj->ProcessScaling(scale,val);
-    if(inBin(scale))
-        return val*getDbl(scale);
-    return val;
-}
+//double ParamBin::processScale(const std::string& key,const std::string& scale,double val) const
+//{
+//    if(si_obj->ValidScaling(scale))
+//        return si_obj->ProcessScaling(scale,val);
+//    if(inBin(scale))
+//        return val*getDbl(scale);
+//    return val;
+//}
 
 
 template <>
@@ -118,9 +147,8 @@ void convertFromString(const std::string& str,std::vector<std::string>& vals)
     vals = parseString(str,',');
 }
 
-std::string ParamBin::readNextLine(std::ifstream& fin) const
+std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed) 
 {
-    std::string line_feed;
     getline(fin,line_feed);
     line_feed = pw::decommentString(line_feed,"#");
     line_feed = pw::decommentString(line_feed,"//");
@@ -140,30 +168,83 @@ std::string ParamBin::readNextLine(std::ifstream& fin) const
         linecont = pw::eatWhiteSpace(linecont);
         line_feed = st + " " + linecont;
     }
-    return line_feed;
+    return fin;
 }
 
-ParamBin ParamBin::readNextGroup(std::string& line_feed,std::ifstream& fin){
-    ParamBin group;
-    line_feed = readNextLine(fin);
-    while(fin && pw::countCharacters(line_feed,':') > 0){
-        group.setParam(line_feed);
-        line_feed = readNextLine(fin);
-    }
-    return group;
-}
-
-
-void ParamBin::setParam(std::string& line_feed)
+void lineToNameVal(const std::string& line_feed,std::string& name,std::string& vals)
 {
     std::vector<std::string> parsedParam = pw::parseString(line_feed,':');
-    std::string name = parsedParam[0];
-    std::string vals = parsedParam[1];
+    name = parsedParam[0];
+    vals = parsedParam[1];
     name = pw::eatWhiteSpace(name);
     vals = pw::eatWhiteSpace(vals);
-    set(name,vals);
 }
 
+//ParamBin* ParamBin::readNextGroup(std::string& line_feed,std::ifstream& fin){
+//    ParamBin* group = new ParamBin;
+//    line_feed = readNextLine(fin);
+//    while(fin && pw::countCharacters(line_feed,':') > 0){
+//        group.setParam(line_feed);
+//        line_feed = readNextLine(fin);
+//    }
+//    return group;
+//}
+
+
+
+
+void ParamBin::loadParamFile(const char* FILE)
+{
+    std::ifstream fin(FILE);
+    if(!fin.is_open())
+    {
+        fin.clear();
+        throw ParamBinFileException(FILE);
+    }
+
+    // Levels determine parent/child relationships, root level is -1 with a parent=nullptr
+    int level = -1;
+    ParamBin* parent = this;
+
+    std::vector<int> levels;
+    std::vector<ParamBin*> parents;
+
+    levels.push_back(level);
+    parents.push_back(parent);
+
+//    ParamBin* current_bin = this;
+    std::string line_feed;
+    while(readNextLine(fin,line_feed))
+    {
+        // If a colon is found, then the line contains a paramater and not a group
+        if(pw::countCharacters(line_feed,':') > 0){
+            std::string name,vals;
+            lineToNameVal(line_feed,name,vals);
+            parents.back()->set(name,vals);
+        } else {
+            // Group found.
+            std::string group_name(line_feed);
+            group_name = pw::eatWhiteSpace(group_name);
+
+            // Calculate amount of line whitespace to start string to
+            // determine parent/child relationship
+            level = countFirstChar(line_feed," ");
+            while(level <= levels.back() && parents.size() > 0){
+                parents.pop_back();
+                levels.pop_back();
+            }
+            levels.push_back(level);
+            ParamBin* sub_bin = new ParamBin;
+
+            parent = parents.back();
+            parent->setBin(group_name,sub_bin);
+
+            parents.push_back(sub_bin);
+        }
+    }
+}
+
+/*
 void ParamBin::loadParamFile(const char* FILE)
 {
     std::ifstream fin(FILE);
@@ -231,9 +312,9 @@ void ParamBin::loadParamFile(const char* FILE)
                 std::string gname = it->second;
                 std::string parent_name = stripFirst(gname,'/');
                 std::string child_name = stripLast(gname,'/');
-                ParamBin child_bin = gn_map[gname];
-                ParamBin parent_bin = gn_map[parent_name];
-                parent_bin.set(child_name,child_bin);
+                ParamBin* child_bin = gn_map[gname];
+                ParamBin* parent_bin = gn_map[parent_name];
+                parent_bin->set(child_name,child_bin);
                 gn_map[parent_name] = parent_bin;
             } //If a group is not a child, then set it to the ParamBin
             else
@@ -241,8 +322,12 @@ void ParamBin::loadParamFile(const char* FILE)
         }
     }
 }
+*/
 
 void ParamBin::printBin(std::ostream& os) const{
+
+    static const std::string EMPTY_CHARS = std::string(2,' ');
+
     static int depth = 0;
     os << std::endl;
     auto it = params.cbegin();
@@ -251,24 +336,24 @@ void ParamBin::printBin(std::ostream& os) const{
         for(int i = 0; i < depth; i++)
             name += EMPTY_CHARS;
         name += it->first;
-        auto scaleit = scaleMap.find(it->first);
-        if(scaleit != scaleMap.cend())
-            name += '[' + scaleit->second + ']'; 
+//        auto scaleit = scaleMap.find(it->first);
+//        if(scaleit != scaleMap.cend())
+//            name += '[' + scaleit->second + ']'; 
 
         os << std::setiosflags(std::ios::left) << std::setw(40) << name + ":";
         os << std::setw(16) << it->second << std::endl;
         it++;
     }
     os << std::endl;
-    auto bit = parambins.cbegin();
-    while(bit != parambins.cend()){
+    auto bit = child_bins.cbegin();
+    while(bit != child_bins.cend()){
         std::string group_name;
         for(int i = 0; i < depth; i++)
             group_name += EMPTY_CHARS;
         group_name += bit->first;
         os << group_name << std::endl;
         depth++;
-        bit->second.printBin(os);
+        bit->second->printBin(os);
         depth--;
         bit++;
     }
@@ -282,7 +367,7 @@ std::ostream& operator<<(std::ostream& os,const ParamBin& bin)
 
 bool ParamBin::inBin(const std::string& name) const
 {
-    if(params.count(name) > 0 || parambins.count(name) > 0) 
+    if(params.count(name) > 0 || child_bins.count(name) > 0) 
         return true;
     return false;
 }
@@ -298,7 +383,7 @@ int ParamBin::size(const std::string& name) const
 
 bool ParamBin::empty() const
 {
-    if(params.empty()  && parambins.empty())
+    if(params.empty()  && child_bins.empty())
         return true;
     else
         return false;
@@ -317,28 +402,29 @@ std::string ParamBin::getStrParam(const std::string& name) const
 
 ParamBin& ParamBin::getBin(const std::string& name) 
 {
-    auto it = parambins.find(name);
-    if(it != parambins.cend())
-        return it->second;
+    auto it = child_bins.find(name);
+    if(it != child_bins.cend())
+        return *it->second;
     else
         throw ParamBinKeyException(name);
 }
 
 const ParamBin& ParamBin::getBin(const std::string& name) const
 {
-    auto it = parambins.find(name);
-    if(it != parambins.cend())
-        return it->second;
+    auto it = child_bins.find(name);
+    if(it != child_bins.cend())
+        return *it->second;
     else
         throw ParamBinKeyException(name);
 }
+
 
 bool ParamBin::clear(const std::string& name)
 {
     if(inBin(name)){
         params.erase(name);
-        parambins.erase(name);
-        scaleMap.erase(name);
+        child_bins.erase(name);
+        //scaleMap.erase(name);
         return true;
     }
     else 
@@ -348,8 +434,8 @@ bool ParamBin::clear(const std::string& name)
 void ParamBin::clearAll() 
 {
     params.clear();
-    parambins.clear();
-    scaleMap.clear();
+    child_bins.clear();
+    //scaleMap.clear();
 }
 
 
@@ -446,9 +532,19 @@ void ParamBin::setBool(const std::string& name,bool val){
         set(name,"off");
 }
 
+
+// Pass by value requires constructing a new ParamBin with values copied in
 void ParamBin::setBin(const std::string& name,ParamBin bin)
 {
-    parambins[name] = bin;
+    ParamBin* child_bin = new ParamBin(bin);
+    child_bin->parent_bin = this;
+    child_bins[name] = child_bin;
+}
+
+// Pass by pointers simply transfers ownership of pointer
+void ParamBin::setBin(const std::string& name,ParamBin* bin)
+{
+    child_bins[name] = bin;
 }
 
 std::vector<std::string> ParamBin::inBin(const std::vector<std::string>& nameVec) const

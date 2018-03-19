@@ -16,7 +16,11 @@
 
 namespace pw{
 
-namespace scales{ class SIscalings; }
+
+//std::string readNextLine(std::ifstream& fin);
+std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed);
+void lineToNameVal(const std::string& line_feed,std::string& name,std::string& vals);
+
 
 class ParamBinException : public std::exception
 {
@@ -53,21 +57,26 @@ class ParamBinFileException : public ParamBinException
 };
 
 
-class ParamBin;
 using ParamMap = std::map<std::string,std::string>; 
-using BinMap = std::map<std::string,ParamBin>;
+
+class ParamBin;
+using BinMap = std::map<std::string,ParamBin*>;
+
+namespace scales{ class SIscalings; }
 
 class ParamBin{
 
 
     public:
         ParamBin();
-        ~ParamBin() {}
+        ~ParamBin(); 
+        ParamBin(const ParamBin& bin);
         ParamBin(const char* FILE);
         ParamBin(std::string fileName);
         void loadParamFile(const char* FILE);
         void loadParamFile(std::string FILE) {loadParamFile(FILE.c_str());}
   
+//        ParamBin(const std::string& name,ParamBin* parent);
         double getDbl(const std::string&) const;
         int getInt(const std::string&) const;
         bool getBool(const std::string&) const;
@@ -77,11 +86,20 @@ class ParamBin{
         std::string getStrL(const std::string& nm) const;
         std::string getStrU(const std::string& nm) const;
         char getChar(const std::string&) const;
+
+        // get a child bin
         ParamBin& getBin(const std::string& name);
         const ParamBin& getBin(const std::string& name) const;
 
+        // get the parent bin
+        ParamBin& parentBin() {return *parent_bin;} 
+        const ParamBin& getParentBin() const {return *parent_bin;}
+
+        // get map of all params
         ParamMap getParamMap() const; 
-        const BinMap& getBinMap() const {return parambins;}
+
+        // get map of all child bins
+        const BinMap& getChildBins() const {return child_bins;}
 
         std::vector<double> getDblVec(const std::string&) const;
         std::vector<int> getIntVec(const std::string&) const;
@@ -94,7 +112,11 @@ class ParamBin{
         void get(const std::string& nm,std::vector<T>& val) const;  // get a param of type T 
   
         void setBool(const std::string& nm,bool);
+
+        // Bins are deep copied into the tree structure
         void setBin(const std::string& nm,ParamBin bin);
+        // Transfer ownership of bin 
+        void setBin(const std::string& name,ParamBin* bin);
   
         template<typename T>
         void set(const std::string&,T val); 
@@ -114,25 +136,26 @@ class ParamBin{
 
     private:
 
-        static const std::string EMPTY_CHARS;
-
+        ParamBin* parent_bin;
         ParamMap params; 
-        BinMap parambins;
+        BinMap child_bins;
 
         using strMap = std::map<std::string,std::string>;
-
-        strMap aliasMap;
-        strMap scaleMap;
         std::shared_ptr<scales::SIscalings> si_obj;
 
         std::string getStrParam(const std::string& name) const;
+
         void printBin(std::ostream& os) const;
-        std::string readNextLine(std::ifstream& fin) const;
-        ParamBin readNextGroup(std::string& line_feed,std::ifstream& fin);
-        void setGroup(std::string& line_feed,std::ifstream& fin);
-        void setParam(std::string& line_feed);
         std::string processKey(const std::string& name);
-        double processScale(const std::string& key,const std::string& scale,double val) const;
+
+//        static const std::string EMPTY_CHARS;
+
+//        strMap aliasMap;
+//        strMap scaleMap;
+//        double processScale(const std::string& key,const std::string& scale,double val) const;
+//        ParamBin readNextGroup(std::string& line_feed,std::ifstream& fin);
+//        void setGroup(std::string& line_feed,std::ifstream& fin);
+//        void setParam(std::string& line_feed);
 };
 
 
@@ -234,7 +257,8 @@ void ParamBin::set(const std::string& name,std::vector<T>& val)
 template<>
 void inline ParamBin::set(const std::string& name,ParamBin bin)
 {
-    parambins[name] = bin;
+    ParamBin* binptr = new ParamBin(bin);
+    child_bins[name] = binptr;
 }
 
 template<typename T>
