@@ -21,21 +21,33 @@ int main(int argc,char* argv[])
 
   using namespace pw;
   ParamBin bin;
-  bin.set("var1","100.0 [cm]");
+  bin += NamedParam<std::string>("var1","100.0 [cm]");
   bin.set("var2","'Commas, there are a few, in this string'");
   bin.set("var3","0.4 [mum], 0.5 [mum], 0.6 [mum]");
 
   std::cout << "var1 = " << bin.getDbl("var1") << std::endl;
   std::cout << "var2 = " << bin.getStr("var2") << std::endl;
-  std::vector<double> dbl_vec = bin.getDblVec("var3");
-  for(int i = 0; i < dbl_vec.size(); i++)
-      std::cout << "var3[" << i << "] = " << dbl_vec[i] << std::endl;
+  //std::vector<double> dbl_vec = bin.getDblVec("var3");
+  auto dbl_vec = bin.getDblVec("var3");
+  std::cout << "var3 = ";
+  for(auto v : dbl_vec)
+      std::cout << v << ' ';
+  std::cout << std::endl;
 
-  bin.set("var4",3.0);
-  std::cout << "var4 = " << bin.getStr("var4") << std::endl;
+  // += operator equivalent to bin.set(name,val)
+  bin += NamedParam<double>("var4",3.0);
+  std::cout << "var4 = " << bin.getDbl("var4") << std::endl;
   std::cout << "Setting var4 to a new value..." << std::endl;
-  bin.set("var4",4.0);
-  std::cout << "var4 = " << bin.getStr("var4") << std::endl;
+  bin += NamedParam<double>("var4",4.0);
+  std::cout << "var4 = " << bin.getDbl("var4") << std::endl;
+
+  std::vector<int> var5 = {0,1,2,3};
+  bin += NamedParam<std::vector<int>>("var5",var5);
+  auto int_vec = bin.getIntVec("var5");
+  std::cout << "Heres the int vector [0,1,2,3].\n";
+  for(auto item : int_vec)
+      std::cout << item << ' ';
+  std::cout << std::endl;
 
 
   ParamBin grid;

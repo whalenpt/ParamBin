@@ -13,8 +13,8 @@
 namespace pw{
 
 
-
-ParamBin::ParamBin(const ParamBin& bin) : parent_bin(bin.parent_bin),
+// Only children are copied, parent bin is considered root of the tree
+ParamBin::ParamBin(const ParamBin& bin) : parent_bin(nullptr),
     params(bin.params),
     child_bins(),
     si_obj(bin.si_obj)
@@ -23,6 +23,7 @@ ParamBin::ParamBin(const ParamBin& bin) : parent_bin(bin.parent_bin),
     {
         std::string bin_name = it->first;
         ParamBin* child_bin = new ParamBin(*it->second);
+        child_bin->parent_bin = this;
         child_bins[bin_name] = child_bin;
     }
 }
@@ -198,7 +199,7 @@ void ParamBin::loadParamFile(const char* FILE)
         if(pw::countCharacters(line_feed,':') > 0){
             std::string name,vals;
             lineToNameVal(line_feed,name,vals);
-            parents.back()->set(name,vals);
+            parents.back()->set(NamedParam<std::string>(name,vals));
         } else {
             // Group found.
             std::string group_name(line_feed);
@@ -419,18 +420,17 @@ std::vector<std::string> ParamBin::getStrVec(const std::string& name) const
     return vals;
 }
 
-
 void ParamBin::setBool(const std::string& name,bool val){
-    set(name,(val ? "on" : "off"));
-//    if(val)
-//        set(name,"on");
-//    else
-//        set(name,"off");
+    set(NamedParam<std::string>(name,(val ? "on" : "off")));
 }
 
-
+void ParamBin::set(const std::string& name,const ParamBin& bin)
+{
+    setBin(name,bin);
+} 
+ 
 // Pass by value requires constructing a new ParamBin with values copied in
-void ParamBin::setBin(const std::string& name,ParamBin bin)
+void ParamBin::setBin(const std::string& name,const ParamBin& bin)
 {
     ParamBin* child_bin = new ParamBin(bin);
     child_bin->parent_bin = this;

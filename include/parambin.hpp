@@ -61,6 +61,32 @@ using BinMap = std::map<std::string,ParamBin*>;
 
 namespace scales{ class SIscalings; }
 
+template <class T>
+class NamedParam
+{
+    public:
+        NamedParam(const std::string& name,T val) :
+            m_name(name), m_val(val) {}
+        std::string name() const {return m_name;}
+        T value() const {return m_val;}
+    private:
+        std::string m_name;
+        T m_val;
+};
+
+//class NamedBin
+//{
+//    public:
+//        NamedBin(const std::string& name,std::unique_ptr<ParamBin>) :
+//            m_name(name), m_val(val) {}
+//        std::string name() const {return m_name;}
+//        T value() const {return m_val;}
+//    private:
+//        std::string m_name;
+//        T m_val;
+//};
+
+
 class ParamBin{
 
 
@@ -73,7 +99,6 @@ class ParamBin{
         void loadParamFile(const char* FILE);
         void loadParamFile(std::string FILE) {loadParamFile(FILE.c_str());}
   
-//        ParamBin(const std::string& name,ParamBin* parent);
         double getDbl(const std::string&) const;
         int getInt(const std::string&) const;
         bool getBool(const std::string&) const;
@@ -111,18 +136,30 @@ class ParamBin{
         void setBool(const std::string& nm,bool);
 
         // Bins are deep copied into the tree structure
-        void setBin(const std::string& nm,ParamBin bin);
+        void setBin(const std::string& nm,const ParamBin& bin);
         // Transfer ownership of bin 
         void setBin(const std::string& name,ParamBin* bin);
   
         template<typename T>
-        void set(const std::string&,T val); 
-  
+        void set(const NamedParam<T>& named_param);
+
         template<typename T>
-        void set(const std::string&,std::vector<T>&);
-  
+        void set(const std::string&,T val);
+
+        template<typename T>
+        void set(const std::string&,const std::vector<T>&);
+
+
+        void set(const std::string&,const ParamBin& bin);
+
         friend std::ostream& operator<<(std::ostream&,const ParamBin& bin);
-  
+
+        template<typename T>
+        void operator+=(const NamedParam<T>& named_param);
+
+//        template<>
+//        void operator+=(const ParamBin& bin);
+ 
         bool inBin(const std::string&) const;
         std::vector<std::string> inBin(const std::vector<std::string>&) const;
         std::vector<std::string> notInBin(const std::vector<std::string>&) const;
@@ -140,17 +177,14 @@ class ParamBin{
         using strMap = std::map<std::string,std::string>;
         std::shared_ptr<scales::SIscalings> si_obj;
 
-        std::string getStrParam(const std::string& name) const;
 
         void printBin(std::ostream& os) const;
         std::string processKey(const std::string& name);
+        std::string getStrParam(const std::string& name) const;
 
 //        strMap aliasMap;
 //        strMap scaleMap;
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
-//        ParamBin readNextGroup(std::string& line_feed,std::ifstream& fin);
-//        void setGroup(std::string& line_feed,std::ifstream& fin);
-//        void setParam(std::string& line_feed);
 };
 
 
@@ -177,7 +211,7 @@ std::string convertToString(T val)
 }
 
 template<typename T> 
-std::string convertToString(std::vector<T>& val) 
+std::string convertToString(const std::vector<T>& val) 
 {
     if(val.empty())
         return "";
@@ -235,26 +269,28 @@ void convertFromString(const std::string& str,std::vector<std::string>& vals);
 template<typename T>
 void ParamBin::set(const std::string& name,T val) 
 {
-    std::string strVal = convertToString(val);
-    std::string key = processKey(name);
-    params[key] = strVal;
+    set(NamedParam<T>(name,val));
 }
 
 // ADD A PARAM SET TO THE PARAM BIN
 template<typename T>
-void ParamBin::set(const std::string& name,std::vector<T>& val) 
+void ParamBin::set(const std::string& name,const std::vector<T>& val) 
 {
-    std::string strVal = convertToString(val);
-    std::string key = processKey(name);
+    set(NamedParam<std::vector<T>>(name,val));
+}
+
+template<typename T>
+void ParamBin::set(const NamedParam<T>& named_param)
+{
+    std::string key = processKey(named_param.name());
+    std::string strVal = convertToString(named_param.value());
     params[key] = strVal;
 }
 
-template<>
-void inline ParamBin::set(const std::string& name,ParamBin bin)
-{
-    ParamBin* binptr = new ParamBin(bin);
-    child_bins[name] = binptr;
-}
+//template<>
+//void set(const std::string& name,ParamBin bin);
+
+
 
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
@@ -273,6 +309,19 @@ void ParamBin::get(const std::string& name,std::vector<T>& vals) const
     std::string strval = getStrParam(name);
     convertFromString<T>(strval,vals);
 }
+
+template<typename T>
+void ParamBin::operator+=(const NamedParam<T>& named_param)
+{
+    set(named_param);
+}
+
+//template<>
+//void ParamBin::operator+=(const ParamBin& bin)
+//{
+//    setBin(bin);
+//}
+
 
 }
 
