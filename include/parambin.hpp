@@ -74,18 +74,7 @@ class NamedParam
         T m_val;
 };
 
-//class NamedBin
-//{
-//    public:
-//        NamedBin(const std::string& name,std::unique_ptr<ParamBin>) :
-//            m_name(name), m_val(val) {}
-//        std::string name() const {return m_name;}
-//        T value() const {return m_val;}
-//    private:
-//        std::string m_name;
-//        T m_val;
-//};
-
+class NamedBin;
 
 class ParamBin{
 
@@ -133,33 +122,28 @@ class ParamBin{
         template<typename T>
         void get(const std::string& nm,std::vector<T>& val) const;  // get a param of type T 
   
+        template<typename T>
+        void set(const NamedParam<T>& named_param);
+
+        template<typename T>
+        void set(const std::string&,T val);
+        template<typename T>
+        void set(const std::string&,const std::vector<T>&);
+        void set(const std::string&,const ParamBin& bin);
+
         void setBool(const std::string& nm,bool);
 
         // Bins are deep copied into the tree structure
         void setBin(const std::string& nm,const ParamBin& bin);
         // Transfer ownership of bin 
         void setBin(const std::string& name,std::unique_ptr<ParamBin> bin);
-  
-        template<typename T>
-        void set(const NamedParam<T>& named_param);
-
-        template<typename T>
-        void set(const std::string&,T val);
-
-        template<typename T>
-        void set(const std::string&,const std::vector<T>&);
-
-
-        void set(const std::string&,const ParamBin& bin);
 
         friend std::ostream& operator<<(std::ostream&,const ParamBin& bin);
 
         template<typename T>
-        void operator+=(const NamedParam<T>& named_param);
+        ParamBin& operator<<(const NamedParam<T>& named_param);
+        ParamBin& operator<<(const NamedBin& named_bin);
 
-//        template<>
-//        void operator+=(const ParamBin& bin);
- 
         bool inBin(const std::string&) const;
         std::vector<std::string> inBin(const std::vector<std::string>&) const;
         std::vector<std::string> notInBin(const std::vector<std::string>&) const;
@@ -186,6 +170,24 @@ class ParamBin{
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
 };
 
+class NamedBin
+{
+    public:
+        NamedBin(const std::string& name,const ParamBin& bin) :
+            m_name(name), m_bin(bin) {}
+        std::string name() const {return m_name;}
+        ParamBin bin() const {return m_bin;}
+    private:
+        std::string m_name;
+        ParamBin m_bin;
+};
+
+template<typename T>
+ParamBin& ParamBin::operator<<(const NamedParam<T>& named_param)
+{
+    set(named_param);
+    return *this;
+}
 
 template<typename T> 
 std::string convertToString(T val) 
@@ -286,11 +288,6 @@ void ParamBin::set(const NamedParam<T>& named_param)
     params[key] = strVal;
 }
 
-//template<>
-//void set(const std::string& name,ParamBin bin);
-
-
-
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
 {
@@ -308,18 +305,6 @@ void ParamBin::get(const std::string& name,std::vector<T>& vals) const
     std::string strval = getStrParam(name);
     convertFromString<T>(strval,vals);
 }
-
-template<typename T>
-void ParamBin::operator+=(const NamedParam<T>& named_param)
-{
-    set(named_param);
-}
-
-//template<>
-//void ParamBin::operator+=(const ParamBin& bin)
-//{
-//    setBin(bin);
-//}
 
 
 }

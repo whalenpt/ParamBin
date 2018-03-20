@@ -56,6 +56,13 @@ ParamMap ParamBin::getParamMap() const {
     return params;
 }
 
+ParamBin& ParamBin::operator<<(const NamedBin& named_bin)
+{
+    setBin(named_bin.name(),named_bin.bin());
+    return *this;
+}
+
+
 //ParamMap ParamBin::getParamMap() const {
 //    ParamMap map(params);
 //    for(auto it = scaleMap.cbegin(); it != scaleMap.cend(); it++)
