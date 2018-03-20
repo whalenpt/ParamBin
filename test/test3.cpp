@@ -19,7 +19,6 @@
 int main(int argc,char* argv[])
 {
 
-  using namespace pw;
   ParamBin input;
   input.set("var1",1.3);
   input.set("var2",10);

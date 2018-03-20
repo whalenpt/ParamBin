@@ -9,7 +9,6 @@
 #include<iostream>
 #include <pwutils/pwstrings.h>
 
-namespace pw{
 namespace scales{
 
   typedef std::pair<std::string,double> dblPair;
@@ -72,7 +71,6 @@ namespace scales{
       double ProcessMult(const std::string& str,double val) const;
       bool CheckScale(const std::string& str) const;
   };
-}
 }
 
 #endif

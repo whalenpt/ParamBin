@@ -6,7 +6,6 @@
 #include <pwutils/pwstrings.h>
 #include "siscales.h"
 
-namespace pw{
 namespace scales{
   
   double SIscalings::ProcessScaling(const std::string& str,double val) const
@@ -163,7 +162,6 @@ namespace scales{
     }
   }
 
-}
 }
 
 

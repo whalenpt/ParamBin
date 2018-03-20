@@ -14,7 +14,6 @@
 #include <memory>
 #include <pwutils/pwstrings.h>
 
-namespace pw{
 
 
 std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed);
@@ -56,6 +55,7 @@ class ParamBinFileException : public ParamBinException
 
 
 class ParamBin;
+class NamedBin;
 using ParamMap = std::map<std::string,std::string>; 
 using BinMap = std::map<std::string,std::unique_ptr<ParamBin>>;
 
@@ -74,10 +74,8 @@ class NamedParam
         T m_val;
 };
 
-class NamedBin;
 
 class ParamBin{
-
 
     public:
         ParamBin();
@@ -125,13 +123,16 @@ class ParamBin{
         template<typename T>
         void set(const NamedParam<T>& named_param);
 
+
         template<typename T>
         void set(const std::string&,T val);
         template<typename T>
         void set(const std::string&,const std::vector<T>&);
+
         void set(const std::string&,const ParamBin& bin);
 
         void setBool(const std::string& nm,bool);
+        void set(const NamedBin& named_bin);
 
         // Bins are deep copied into the tree structure
         void setBin(const std::string& nm,const ParamBin& bin);
@@ -165,7 +166,7 @@ class ParamBin{
         std::string processKey(const std::string& name);
         std::string getStrParam(const std::string& name) const;
 
-//        strMap aliasMap;
+        strMap aliasMap;
 //        strMap scaleMap;
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
 };
@@ -243,7 +244,7 @@ void convertFromString(const std::string& str,std::vector<T>& vals)
     vals.clear();
     if(str.empty())
         return;
-    std::vector<std::string> str_vec = parseString(str,',');
+    std::vector<std::string> str_vec = pw::parseString(str,',');
     for(unsigned int i = 0; i < str_vec.size(); i++){
         T val  = convertFromString<T>(str_vec[i]);
         vals.push_back(val);
@@ -288,16 +289,15 @@ void ParamBin::set(const NamedParam<T>& named_param)
     params[key] = strVal;
 }
 
+template<>
+void ParamBin::get(const std::string& name,double& val) const;
+
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
 {
     std::string strval = getStrParam(name);
     val = convertFromString<T>(strval);
 }
-
-template<>
-void ParamBin::get(const std::string& name,double& val) const;
-
 
 template<typename T>
 void ParamBin::get(const std::string& name,std::vector<T>& vals) const
@@ -307,7 +307,6 @@ void ParamBin::get(const std::string& name,std::vector<T>& vals) const
 }
 
 
-}
 
 #endif
 

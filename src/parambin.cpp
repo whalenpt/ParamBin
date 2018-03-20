@@ -10,7 +10,6 @@
 #include "parambin.hpp"
 #include <pwutils/pwstrings.h>
 
-namespace pw{
 
 
 // Only children are copied, parent bin is considered root of the tree
@@ -61,6 +60,12 @@ ParamBin& ParamBin::operator<<(const NamedBin& named_bin)
     setBin(named_bin.name(),named_bin.bin());
     return *this;
 }
+
+void ParamBin::set(const NamedBin& named_bin) 
+{
+    setBin(named_bin.name(),named_bin.bin());
+}
+
 
 
 //ParamMap ParamBin::getParamMap() const {
@@ -142,7 +147,7 @@ template <>
 void convertFromString(const std::string& str,std::vector<std::string>& vals)
 {
     vals.clear();
-    vals = parseString(str,',');
+    vals = pw::parseString(str,',');
 }
 
 std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed) 
@@ -212,7 +217,7 @@ void ParamBin::loadParamFile(const char* FILE)
 
             // Calculate amount of line whitespace to start string to
             // determine parent/child relationship
-            level = countFirstChar(line_feed," ");
+            level = pw::countFirstChar(line_feed," ");
             while(level <= levels.back() && parents.size() > 0){
                 parents.pop_back();
                 levels.pop_back();
@@ -471,6 +476,5 @@ std::vector<std::string> ParamBin::notInBin(const std::vector<std::string>& name
 }
 
 
-}
 
 

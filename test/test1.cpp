@@ -23,7 +23,6 @@ int main(int argc,char* argv[])
   using std::cerr;
   using std::endl;
   using std::cout;
-  using namespace pw;
 
   if(argc == 2){
     ParamBin input(argv[1]);

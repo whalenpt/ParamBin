@@ -1,9 +1,8 @@
 /*------------------------------------------------------------------------------
  *   
  *    Author: Patrick Townsend Whalen   
- *    Email: pwhalen@email.arizona.edu
  *    Status: Development
- *    Date: (Enter Date, eg. 06/30/15)
+ *    Date: (Enter Date, eg. 03/21/18)
  *    Description: (Enter Program Description, e.g. 
  *
 ------------------------------------------------------------------------------*/
@@ -19,7 +18,6 @@
 int main(int argc,char* argv[])
 {
 
-  using namespace pw;
   ParamBin bin;
   bin << NamedParam<std::string>("var1","100.0 [cm]");
   bin << NamedParam<std::string>("var2","'Commas, there are a few, in this string'");
