@@ -57,7 +57,7 @@ class ParamBinFileException : public ParamBinException
 
 class ParamBin;
 using ParamMap = std::map<std::string,std::string>; 
-using BinMap = std::map<std::string,ParamBin*>;
+using BinMap = std::map<std::string,std::unique_ptr<ParamBin>>;
 
 namespace scales{ class SIscalings; }
 
@@ -138,7 +138,7 @@ class ParamBin{
         // Bins are deep copied into the tree structure
         void setBin(const std::string& nm,const ParamBin& bin);
         // Transfer ownership of bin 
-        void setBin(const std::string& name,ParamBin* bin);
+        void setBin(const std::string& name,std::unique_ptr<ParamBin> bin);
   
         template<typename T>
         void set(const NamedParam<T>& named_param);
@@ -176,7 +176,6 @@ class ParamBin{
 
         using strMap = std::map<std::string,std::string>;
         std::shared_ptr<scales::SIscalings> si_obj;
-
 
         void printBin(std::ostream& os) const;
         std::string processKey(const std::string& name);

@@ -22,9 +22,9 @@ ParamBin::ParamBin(const ParamBin& bin) : parent_bin(nullptr),
     for(auto it = bin.child_bins.cbegin() ; it != bin.child_bins.cend(); it++)
     {
         std::string bin_name = it->first;
-        ParamBin* child_bin = new ParamBin(*it->second);
+        std::unique_ptr<ParamBin> child_bin(new ParamBin(*it->second));
         child_bin->parent_bin = this;
-        child_bins[bin_name] = child_bin;
+        child_bins[bin_name] = std::move(child_bin);
     }
 }
 
@@ -50,10 +50,7 @@ ParamBin::ParamBin(std::string fileName) :
 }
 
 ParamBin::~ParamBin() 
-{
-    for(auto it = child_bins.begin() ; it != child_bins.end(); it++)
-        delete it->second;
-}
+{ }
 
 ParamMap ParamBin::getParamMap() const {
     return params;
@@ -174,6 +171,7 @@ void lineToNameVal(const std::string& line_feed,std::string& name,std::string& v
     vals = pw::eatWhiteSpace(vals);
 }
 
+
 void ParamBin::loadParamFile(const char* FILE)
 {
     std::ifstream fin(FILE);
@@ -213,9 +211,9 @@ void ParamBin::loadParamFile(const char* FILE)
                 levels.pop_back();
             }
             levels.push_back(level);
-            ParamBin* sub_bin = new ParamBin;
-            parents.back()->setBin(group_name,sub_bin);
-            parents.push_back(sub_bin);
+            ParamBin* bin = parents.back();
+            bin->setBin(group_name,std::unique_ptr<ParamBin>(new ParamBin));
+            parents.push_back(bin->child_bins[group_name].get());
         }
     }
 }
@@ -432,16 +430,16 @@ void ParamBin::set(const std::string& name,const ParamBin& bin)
 // Pass by value requires constructing a new ParamBin with values copied in
 void ParamBin::setBin(const std::string& name,const ParamBin& bin)
 {
-    ParamBin* child_bin = new ParamBin(bin);
+    std::unique_ptr<ParamBin> child_bin(new ParamBin(bin));
     child_bin->parent_bin = this;
-    child_bins[name] = child_bin;
+    child_bins[name] = std::move(child_bin);
 }
 
 // Pass by pointers simply transfers ownership of pointer
-void ParamBin::setBin(const std::string& name,ParamBin* bin)
+void ParamBin::setBin(const std::string& name,std::unique_ptr<ParamBin> bin)
 {
     bin->parent_bin = this;
-    child_bins[name] = bin;
+    child_bins[name] = std::move(bin);
 }
 
 std::vector<std::string> ParamBin::inBin(const std::vector<std::string>& nameVec) const
