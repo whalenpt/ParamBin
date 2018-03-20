@@ -84,20 +84,49 @@ void ParamBin::set(const NamedBin& named_bin)
 //}
                      
 
-std::string ParamBin::processKey(const std::string& name)
+std::string ParamBin::setParamKey(const std::string& name)
 {
     std::string key = pw::eatWhiteSpace(pw::removeSubString(name,'(',')'));
+    std::string alias = pw::subString(name,'(',')'); 
+    if(!alias.empty())
+        aliasMap[alias] = pw::eatWhiteSpace(key);
     return key;
-
-//    std::string scale = pw::subString(name,'[',']'); 
-//    if(!scale.empty())
-//        scaleMap[key] = pw::eatWhiteSpace(scale);
-
 }
 
-template<>
-void ParamBin::get(const std::string& key,double& val) const
+std::string ParamBin::getParamKey(const std::string& name) const
 {
+    std::string key = pw::eatWhiteSpace(name);
+    if(params.count(key) > 0)
+        return key;
+    auto it = aliasMap.find(key);
+    if(it != aliasMap.cend())
+        return (*it).second;
+
+    throw ParamBinKeyException(key);
+}
+
+std::string ParamBin::getStrParam(const std::string& key) const
+{
+    auto it = params.find(key);
+    return (*it).second;
+}
+
+//std::string ParamBin::getStrParam(const std::string& key) const
+//{
+//    std::string strval;
+//    auto it = params.find(name);
+//    if(it != params.cend())
+//        strval = (*it).second;
+//    else
+//        throw ParamBinKeyException(name);
+//    return strval;
+//}
+
+
+template<>
+void ParamBin::get(const std::string& name,double& val) const
+{
+    std::string key = getParamKey(name);
     std::string strval = getStrParam(key);
     val = convertFromString<double>(strval);
 //    auto it = scaleMap.find(key);
@@ -293,17 +322,6 @@ bool ParamBin::empty() const
         return true;
     else
         return false;
-}
-
-std::string ParamBin::getStrParam(const std::string& name) const
-{
-    std::string strval;
-    auto it = params.find(name);
-    if(it != params.cend())
-        strval = (*it).second;
-    else
-        throw ParamBinKeyException(name);
-    return strval;
 }
 
 ParamBin& ParamBin::getBin(const std::string& name) 

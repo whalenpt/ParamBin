@@ -163,10 +163,12 @@ class ParamBin{
         std::shared_ptr<scales::SIscalings> si_obj;
 
         void printBin(std::ostream& os) const;
-        std::string processKey(const std::string& name);
-        std::string getStrParam(const std::string& name) const;
+        std::string setParamKey(const std::string& name);
+        std::string getParamKey(const std::string& name) const;
+        std::string getStrParam(const std::string& key) const;
 
         strMap aliasMap;
+
 //        strMap scaleMap;
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
 };
@@ -284,7 +286,7 @@ void ParamBin::set(const std::string& name,const std::vector<T>& val)
 template<typename T>
 void ParamBin::set(const NamedParam<T>& named_param)
 {
-    std::string key = processKey(named_param.name());
+    std::string key = setParamKey(named_param.name());
     std::string strVal = convertToString(named_param.value());
     params[key] = strVal;
 }
@@ -295,14 +297,16 @@ void ParamBin::get(const std::string& name,double& val) const;
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
 {
-    std::string strval = getStrParam(name);
+    std::string key = getParamKey(name);
+    std::string strval = getStrParam(key);
     val = convertFromString<T>(strval);
 }
 
 template<typename T>
 void ParamBin::get(const std::string& name,std::vector<T>& vals) const
 {
-    std::string strval = getStrParam(name);
+    std::string key = getParamKey(name);
+    std::string strval = getStrParam(key);
     convertFromString<T>(strval,vals);
 }
 
