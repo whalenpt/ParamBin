@@ -161,6 +161,7 @@ class ParamBin{
         ParamMap params; 
         BinMap child_bins;
         AliasMap aliasMap;
+        AliasMap reverseAliasMap;
 
         std::shared_ptr<scales::SIscalings> si_obj;
 
@@ -169,7 +170,7 @@ class ParamBin{
 
         bool searchTree(const std::string& key,std::string& strval) const;
         bool searchParamMap(const std::string& key,std::string& strval) const;
-
+        std::string getStrParam(const std::string& name) const;
 
 //        strMap scaleMap;
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
@@ -231,28 +232,13 @@ std::string convertToString(const std::vector<T>& val)
 }
 
 template <typename T>
-T convertFromString(const std::string& str)
+void convertFromString(const std::string& str,T& val)
 {
     std::stringstream ss;
     ss.setf(std::ios_base::showpoint);
     ss.precision(12);
     ss << str;
-    T val;
     ss >> val;
-    return val;
-}
-
-template <typename T>
-void convertFromString(const std::string& str,std::vector<T>& vals)
-{
-    vals.clear();
-    if(str.empty())
-        return;
-    std::vector<std::string> str_vec = pw::parseString(str,',');
-    for(unsigned int i = 0; i < str_vec.size(); i++){
-        T val  = convertFromString<T>(str_vec[i]);
-        vals.push_back(val);
-    }
 }
 
 template<> 
@@ -262,14 +248,10 @@ template<>
 std::string convertToString(const char* val);
 
 template <>
-const char* convertFromString(const std::string& str);
+void convertFromString(const std::string& str,char& val);
 
 template <>
-std::string convertFromString(const std::string& str);
-
-template <>
-void convertFromString(const std::string& str,std::vector<std::string>& vals);
-
+void convertFromString(const std::string& str,std::string& val);
 
 // ADD A PARAM TO THE PARAM BIN
 template<typename T>
@@ -293,41 +275,26 @@ void ParamBin::set(const NamedParam<T>& named_param)
     params[key] = strVal;
 }
 
-template<>
-void ParamBin::get(const std::string& name,double& val) const;
+//template<>
+//void ParamBin::get(const std::string& name,double& val) const;
 
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
 {
-    std::string strval;
-    std::string key = pw::eatWhiteSpace(name);
-
-    if(searchParamMap(key,strval)){
-        val = convertFromString<T>(strval);
-        return;
-    }
-    else if(searchTree(key,strval)) {
-       val = convertFromString<T>(strval);
-       return;
-    }
-    throw ParamBinKeyException(key);
+    std::string strval = getStrParam(name);
+    convertFromString<T>(strval,val);
 }
 
 template<typename T>
 void ParamBin::get(const std::string& name,std::vector<T>& vals) const
 {
-    std::string strval;
-    std::string key = pw::eatWhiteSpace(name);
-
-    if(searchParamMap(key,strval)){
-        convertFromString<T>(strval,vals);
-        return;
+    std::string strval = getStrParam(name);
+    std::vector<std::string> strvec = pw::parseString(strval,',');
+    for(unsigned int i = 0; i < strvec.size(); i++){
+        T val;
+        convertFromString<T>(strvec[i],val);
+        vals.push_back(val);
     }
-    if(searchTree(key,strval)) {
-        convertFromString<T>(strval,vals);
-        return;
-    }
-    throw ParamBinKeyException(key);
 }
 
 

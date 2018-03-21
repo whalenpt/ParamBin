@@ -17,6 +17,7 @@ ParamBin::ParamBin(const ParamBin& bin) : parent_bin(nullptr),
     params(bin.params),
     child_bins(),
     aliasMap(bin.aliasMap),
+    reverseAliasMap(bin.reverseAliasMap),
     si_obj(bin.si_obj)
 {
     for(auto it = bin.child_bins.cbegin() ; it != bin.child_bins.cend(); it++)
@@ -62,6 +63,17 @@ ParamBin& ParamBin::operator<<(const NamedBin& named_bin)
     return *this;
 }
 
+std::string ParamBin::getStrParam(const std::string& name) const
+{
+    std::string strval;
+    std::string key = pw::eatWhiteSpace(name);
+    if(searchParamMap(key,strval))
+        return strval;
+    if(searchTree(key,strval)) 
+        return strval;
+    throw ParamBinKeyException(key);
+}
+
 void ParamBin::set(const NamedBin& named_bin) 
 {
     setBin(named_bin.name(),named_bin.bin());
@@ -89,8 +101,10 @@ std::string ParamBin::setParamKey(const std::string& name)
 {
     std::string key = pw::eatWhiteSpace(pw::removeSubString(name,'(',')'));
     std::string alias = pw::eatWhiteSpace(pw::subString(name,'(',')')); 
-    if(!alias.empty())
+    if(!alias.empty()){
         aliasMap[alias] = key;
+        reverseAliasMap[key] = alias;
+    }
     return key;
 }
 
@@ -121,23 +135,23 @@ bool ParamBin::searchTree(const std::string& alias_key,std::string& strval) cons
 }
 
 
+//template<>
+//void ParamBin::get(const std::string& name,double& val) const
+//{
+//    std::string strval;
+//    std::string key = pw::eatWhiteSpace(name);
+//
+//    if(searchParamMap(key,strval)){
+//        convertFromString<double>(strval,val);
+//        return;
+//    }
+//    else if(searchTree(key,strval)) {
+//       convertFromString<double>(strval,val);
+//       return;
+//    }
+//    throw ParamBinKeyException(key);
+//}
 
-template<>
-void ParamBin::get(const std::string& name,double& val) const
-{
-    std::string strval;
-    std::string key = pw::eatWhiteSpace(name);
-
-    if(searchParamMap(key,strval)){
-        val = convertFromString<double>(strval);
-        return;
-    }
-    else if(searchTree(key,strval)) {
-       val = convertFromString<double>(strval);
-       return;
-    }
-    throw ParamBinKeyException(key);
-}
 
 //double ParamBin::processScale(const std::string& key,const std::string& scale,double val) const
 //{
@@ -150,16 +164,22 @@ void ParamBin::get(const std::string& name,double& val) const
 
 
 template <>
-const char* convertFromString(const std::string& str)
+void convertFromString(const std::string& str,char& val)
 {
-    const char* val = str.c_str();
-    return val;
+    val = *str.c_str();
 }
 
 template <>
-std::string convertFromString(const std::string& str)
+void convertFromString(const std::string& str,std::string& val)
 {
-    return str;
+    val = str;
+}
+
+template <>
+void convertFromString(const std::string& str,std::vector<std::string>& vals)
+{
+    vals.clear();
+    vals = pw::parseString(str,',');
 }
 
 template <>
@@ -173,14 +193,6 @@ std::string convertToString(const char* cstr)
 {
     std::string str(cstr);
     return str;
-}
-
-
-template <>
-void convertFromString(const std::string& str,std::vector<std::string>& vals)
-{
-    vals.clear();
-    vals = pw::parseString(str,',');
 }
 
 std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed) 
@@ -275,9 +287,9 @@ void ParamBin::printBin(std::ostream& os) const{
         for(int i = 0; i < depth; i++)
             name += EMPTY_CHARS;
         name += it->first;
-//        auto scaleit = scaleMap.find(it->first);
-//        if(scaleit != scaleMap.cend())
-//            name += '[' + scaleit->second + ']'; 
+        auto ait = reverseAliasMap.find(it->first);
+        if(ait != reverseAliasMap.cend())
+            name += '(' + ait->second + ')'; 
 
         os << std::setiosflags(std::ios::left) << std::setw(40) << name + ":";
         os << std::setw(16) << it->second << std::endl;
