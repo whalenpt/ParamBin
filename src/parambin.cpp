@@ -98,6 +98,7 @@ std::string ParamBin::getParamKey(const std::string& name) const
     std::string key = pw::eatWhiteSpace(name);
     if(params.count(key) > 0)
         return key;
+
     auto it = aliasMap.find(key);
     if(it != aliasMap.cend())
         return (*it).second;
@@ -312,16 +313,12 @@ int ParamBin::size(const std::string& name) const
     auto it = params.find(name);
     if(it != params.cend())
         return pw::countCharacters(it->second,',') + 1;
-    else
-        return 0;
+    return 0;
 }
 
 bool ParamBin::empty() const
 {
-    if(params.empty()  && child_bins.empty())
-        return true;
-    else
-        return false;
+    return (params.empty() && child_bins.empty() ? true : false);
 }
 
 ParamBin& ParamBin::getBin(const std::string& name) 
@@ -405,27 +402,14 @@ bool ParamBin::getBool(const std::string& name) const
 {
     std::string val;
     get(name,val);
-    if(val == "on")
-        return true;
-    else
-        return false;
+    return (val == "on" ? true : false);
 }
 
 bool ParamBin::getBoolF(const std::string& name) const
-{
-    if(inBin(name))
-        return getBool(name);
-    else
-        return false;
-}
+{ return (inBin(name) ? getBool(name) : false); }
 
 bool ParamBin::getBoolT(const std::string& name) const
-{
-    if(inBin(name))
-        return getBool(name);
-    else
-        return true;
-}
+{ return (inBin(name) ? getBool(name) : true); }
 
 std::vector<double> ParamBin::getDblVec(const std::string& name) const
 {
