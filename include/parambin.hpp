@@ -57,6 +57,7 @@ class ParamBinFileException : public ParamBinException
 class ParamBin;
 class NamedBin;
 using ParamMap = std::map<std::string,std::string>; 
+using AliasMap = std::map<std::string,std::string>;
 using BinMap = std::map<std::string,std::unique_ptr<ParamBin>>;
 
 namespace scales{ class SIscalings; }
@@ -139,6 +140,7 @@ class ParamBin{
         // Transfer ownership of bin 
         void setBin(const std::string& name,std::unique_ptr<ParamBin> bin);
 
+
         friend std::ostream& operator<<(std::ostream&,const ParamBin& bin);
 
         template<typename T>
@@ -158,16 +160,16 @@ class ParamBin{
         ParamBin* parent_bin;
         ParamMap params; 
         BinMap child_bins;
+        AliasMap aliasMap;
 
-        using strMap = std::map<std::string,std::string>;
         std::shared_ptr<scales::SIscalings> si_obj;
 
         void printBin(std::ostream& os) const;
         std::string setParamKey(const std::string& name);
-        std::string getParamKey(const std::string& name) const;
-        std::string getStrParam(const std::string& key) const;
 
-        strMap aliasMap;
+        bool searchTree(const std::string& key,std::string& strval) const;
+        bool searchParamMap(const std::string& key,std::string& strval) const;
+
 
 //        strMap scaleMap;
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
@@ -297,17 +299,35 @@ void ParamBin::get(const std::string& name,double& val) const;
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
 {
-    std::string key = getParamKey(name);
-    std::string strval = getStrParam(key);
-    val = convertFromString<T>(strval);
+    std::string strval;
+    std::string key = pw::eatWhiteSpace(name);
+
+    if(searchParamMap(key,strval)){
+        val = convertFromString<T>(strval);
+        return;
+    }
+    else if(searchTree(key,strval)) {
+       val = convertFromString<T>(strval);
+       return;
+    }
+    throw ParamBinKeyException(key);
 }
 
 template<typename T>
 void ParamBin::get(const std::string& name,std::vector<T>& vals) const
 {
-    std::string key = getParamKey(name);
-    std::string strval = getStrParam(key);
-    convertFromString<T>(strval,vals);
+    std::string strval;
+    std::string key = pw::eatWhiteSpace(name);
+
+    if(searchParamMap(key,strval)){
+        convertFromString<T>(strval,vals);
+        return;
+    }
+    if(searchTree(key,strval)) {
+        convertFromString<T>(strval,vals);
+        return;
+    }
+    throw ParamBinKeyException(key);
 }
 
 

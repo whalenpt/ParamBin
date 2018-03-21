@@ -16,6 +16,7 @@
 ParamBin::ParamBin(const ParamBin& bin) : parent_bin(nullptr),
     params(bin.params),
     child_bins(),
+    aliasMap(bin.aliasMap),
     si_obj(bin.si_obj)
 {
     for(auto it = bin.child_bins.cbegin() ; it != bin.child_bins.cend(); it++)
@@ -87,53 +88,55 @@ void ParamBin::set(const NamedBin& named_bin)
 std::string ParamBin::setParamKey(const std::string& name)
 {
     std::string key = pw::eatWhiteSpace(pw::removeSubString(name,'(',')'));
-    std::string alias = pw::subString(name,'(',')'); 
+    std::string alias = pw::eatWhiteSpace(pw::subString(name,'(',')')); 
     if(!alias.empty())
-        aliasMap[alias] = pw::eatWhiteSpace(key);
+        aliasMap[alias] = key;
     return key;
 }
 
-std::string ParamBin::getParamKey(const std::string& name) const
-{
-    std::string key = pw::eatWhiteSpace(name);
-    if(params.count(key) > 0)
-        return key;
-
-    auto it = aliasMap.find(key);
-    if(it != aliasMap.cend())
-        return (*it).second;
-
-    throw ParamBinKeyException(key);
-}
-
-std::string ParamBin::getStrParam(const std::string& key) const
+bool ParamBin::searchParamMap(const std::string& key,std::string& strval) const
 {
     auto it = params.find(key);
-    return (*it).second;
+    if(it != params.cend()){
+        strval = (*it).second;
+        return true;
+    }
+    return false;
 }
 
-//std::string ParamBin::getStrParam(const std::string& key) const
-//{
-//    std::string strval;
-//    auto it = params.find(name);
-//    if(it != params.cend())
-//        strval = (*it).second;
-//    else
-//        throw ParamBinKeyException(name);
-//    return strval;
-//}
+bool ParamBin::searchTree(const std::string& alias_key,std::string& strval) const
+{
+    // Check current bin alias'
+    auto it = aliasMap.find(alias_key);
+    if(it != aliasMap.cend()){
+        std::string key = (*it).second;
+        return searchParamMap(key,strval);
+    }
+    // Check child bins
+    for(const auto& kv : child_bins) {
+        if(kv.second->searchTree(alias_key,strval))
+            return true;
+    }
+    return false;
+}
+
 
 
 template<>
 void ParamBin::get(const std::string& name,double& val) const
 {
-    std::string key = getParamKey(name);
-    std::string strval = getStrParam(key);
-    val = convertFromString<double>(strval);
-//    auto it = scaleMap.find(key);
-//    if(it != scaleMap.cend()){
-//        val = processScale(key,it->second,val);
-//    }
+    std::string strval;
+    std::string key = pw::eatWhiteSpace(name);
+
+    if(searchParamMap(key,strval)){
+        val = convertFromString<double>(strval);
+        return;
+    }
+    else if(searchTree(key,strval)) {
+       val = convertFromString<double>(strval);
+       return;
+    }
+    throw ParamBinKeyException(key);
 }
 
 //double ParamBin::processScale(const std::string& key,const std::string& scale,double val) const
