@@ -300,6 +300,7 @@ void ParamBin::get(const std::string& name,std::vector<T>& vals) const
 {
     std::string strval = getStrParam(name);
     std::vector<std::string> strvec = pw::parseString(strval,',');
+    vals.clear();
     for(auto strval : strvec){
         T val;
         convertFromString<T>(strval,val);

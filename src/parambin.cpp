@@ -25,6 +25,27 @@ void ParamBin::get(const std::string& name,double& val) const
     }
 }
 
+template<>
+void ParamBin::get(const std::string& name,std::vector<double>& vals) const
+{
+    std::string strval = getStrParam(name);
+    std::vector<std::string> strvec = pw::parseString(strval,',');
+    vals.clear();
+    for(auto strval : strvec){
+        double val;
+        std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
+        convertFromString<double>(rawval,val);
+
+        std::string strscale = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
+        if(!strscale.empty()){
+            double scale = evalScale(strscale);
+            val *= scale;
+        }
+        vals.push_back(val);
+    }
+}
+
+
 double ParamBin::evalScale(const std::string& strscale) const
 {
     if(si_obj->isValid(strscale)) { // Look for a matching SI scale
@@ -51,18 +72,6 @@ double ParamBin::evalScale(const std::string& strscale) const
     }
     throw ParamBinScaleException(strscale);
 }
-
-//template<>
-//void ParamBin::get(const std::string& name,std::vector<double>& vals) const
-//{
-//    std::string strval = getStrParam(name);
-//    std::vector<std::string> strvec = pw::parseString(strval,',');
-//    for(auto strval : strvec){
-//        T val;
-//        convertFromString<T>(strval,val);
-//        vals.push_back(val);
-//    }
-//}
 
 
 // Only children are copied, parent bin is considered root of the tree
