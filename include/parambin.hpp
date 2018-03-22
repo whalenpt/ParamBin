@@ -53,6 +53,19 @@ class ParamBinFileException : public ParamBinException
         std::string name;
 };
 
+class ParamBinScaleException : public ParamBinException
+{
+    public:
+        explicit ParamBinScaleException(const std::string& scale) : m_scale(scale) {}
+        ~ParamBinScaleException() {};
+        const char* what() const noexcept {
+            std::string msg = "The scale " + m_scale + " could not be processed.";
+            return msg.c_str();
+        }
+    private:
+        std::string m_scale;
+};
+
 
 class ParamBin;
 class NamedBin;
@@ -102,14 +115,14 @@ class ParamBin{
         const ParamBin& getBin(const std::string& name) const;
 
         // get the parent bin
-        ParamBin& parentBin() {return *parent_bin;} 
-        const ParamBin& getParentBin() const {return *parent_bin;}
+        ParamBin& parentBin() {return *parent;} 
+        const ParamBin& getParentBin() const {return *parent;}
 
         // get map of all params
         ParamMap getParamMap() const; 
 
         // get map of all child bins
-        const BinMap& getChildBins() const {return child_bins;}
+        const BinMap& getChildBins() const {return children;}
 
         std::vector<double> getDblVec(const std::string&) const;
         std::vector<int> getIntVec(const std::string&) const;
@@ -120,13 +133,13 @@ class ParamBin{
   
         template<typename T>
         void get(const std::string& nm,std::vector<T>& val) const;  // get a param of type T 
-  
+
         template<typename T>
         void set(const NamedParam<T>& named_param);
 
-
         template<typename T>
         void set(const std::string&,T val);
+
         template<typename T>
         void set(const std::string&,const std::vector<T>&);
 
@@ -139,7 +152,6 @@ class ParamBin{
         void setBin(const std::string& nm,const ParamBin& bin);
         // Transfer ownership of bin 
         void setBin(const std::string& name,std::unique_ptr<ParamBin> bin);
-
 
         friend std::ostream& operator<<(std::ostream&,const ParamBin& bin);
 
@@ -157,22 +169,22 @@ class ParamBin{
 
     private:
 
-        ParamBin* parent_bin;
+        ParamBin* parent;
         ParamMap params; 
-        BinMap child_bins;
-        AliasMap aliasMap;
-        AliasMap reverseAliasMap;
+        BinMap children;
+        AliasMap alias_map;
+        AliasMap reverse_alias_map;
 
         std::shared_ptr<scales::SIscalings> si_obj;
 
         void printBin(std::ostream& os) const;
         std::string setParamKey(const std::string& name);
 
-        bool searchTree(const std::string& key,std::string& strval) const;
+        bool searchAliasTree(const std::string& key,std::string& strval) const;
         bool searchParamMap(const std::string& key,std::string& strval) const;
         std::string getStrParam(const std::string& name) const;
 
-//        strMap scaleMap;
+
 //        double processScale(const std::string& key,const std::string& scale,double val) const;
 };
 
@@ -231,6 +243,12 @@ std::string convertToString(const std::vector<T>& val)
     return vecstr;
 }
 
+template<> 
+std::string convertToString(std::string val);
+
+template<> 
+std::string convertToString(const char* val);
+
 template <typename T>
 void convertFromString(const std::string& str,T& val)
 {
@@ -240,12 +258,6 @@ void convertFromString(const std::string& str,T& val)
     ss << str;
     ss >> val;
 }
-
-template<> 
-std::string convertToString(std::string val);
-
-template<> 
-std::string convertToString(const char* val);
 
 template <>
 void convertFromString(const std::string& str,char& val);
@@ -275,9 +287,6 @@ void ParamBin::set(const NamedParam<T>& named_param)
     params[key] = strVal;
 }
 
-//template<>
-//void ParamBin::get(const std::string& name,double& val) const;
-
 template<typename T>
 void ParamBin::get(const std::string& name,T& val) const
 {
@@ -290,9 +299,9 @@ void ParamBin::get(const std::string& name,std::vector<T>& vals) const
 {
     std::string strval = getStrParam(name);
     std::vector<std::string> strvec = pw::parseString(strval,',');
-    for(unsigned int i = 0; i < strvec.size(); i++){
+    for(auto strval : strvec){
         T val;
-        convertFromString<T>(strvec[i],val);
+        convertFromString<T>(strval,val);
         vals.push_back(val);
     }
 }

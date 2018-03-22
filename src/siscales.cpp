@@ -8,6 +8,11 @@
 
 namespace scales{
   
+  double SIscalings::getScale(const std::string& str) const
+  {
+      return 1.0;
+  }
+
   double SIscalings::ProcessScaling(const std::string& str,double val) const
   {
     std::string num_str,den_str;

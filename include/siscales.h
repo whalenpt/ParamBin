@@ -62,6 +62,7 @@ namespace scales{
       ~SIscalings() {};
       double ProcessScaling(const std::string& str,double val) const;
       bool ValidScaling(const std::string& str) const;
+      double getScale(const std::string& str) const;
      private:
       dblMap siMap;
       dblMap conMap;

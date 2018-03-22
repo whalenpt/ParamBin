@@ -11,40 +11,86 @@
 #include <pwutils/pwstrings.h>
 
 
+template<>
+void ParamBin::get(const std::string& name,double& val) const
+{
+    std::string strval = getStrParam(name);
+    std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
+    convertFromString<double>(rawval,val);
+
+    std::string strscale = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
+    if(!strscale.empty()){
+        if(si_obj->ValidScaling(strscale)) { // Look for a matching SI scale
+            val = si_obj->ProcessScaling(strscale,val);
+            return;
+        } // Check for scale to be a variable in the current bin
+        else if(searchParamMap(strscale,strval)){
+            double scale;
+            convertFromString<double>(strval,scale);
+            val *= scale;
+            return; 
+        }
+        else{ // Check for the scale to be an alias, starts at top level parent
+            const ParamBin* top = this;
+            while(top->parent != nullptr)
+                top = top->parent;
+            if(top->searchAliasTree(strscale,strval)){
+                double scale;
+                convertFromString<double>(strval,scale);
+                val *= scale;
+                return;
+            } 
+        }
+        throw ParamBinScaleException(strscale);
+    }
+}
+
+//template<>
+//void ParamBin::get(const std::string& name,std::vector<double>& vals) const
+//{
+//    std::string strval = getStrParam(name);
+//    std::vector<std::string> strvec = pw::parseString(strval,',');
+//    for(auto strval : strvec){
+//        T val;
+//        convertFromString<T>(strval,val);
+//        vals.push_back(val);
+//    }
+//}
+
 
 // Only children are copied, parent bin is considered root of the tree
-ParamBin::ParamBin(const ParamBin& bin) : parent_bin(nullptr),
+ParamBin::ParamBin(const ParamBin& bin) : parent(nullptr),
     params(bin.params),
-    child_bins(),
-    aliasMap(bin.aliasMap),
-    reverseAliasMap(bin.reverseAliasMap),
+    children(),
+    alias_map(bin.alias_map),
+    reverse_alias_map(bin.reverse_alias_map),
     si_obj(bin.si_obj)
 {
-    for(auto it = bin.child_bins.cbegin() ; it != bin.child_bins.cend(); it++)
+    for(auto it = bin.children.cbegin() ; it != bin.children.cend(); it++)
     {
         std::string bin_name = it->first;
         std::unique_ptr<ParamBin> child_bin(new ParamBin(*it->second));
-        child_bin->parent_bin = this;
-        child_bins[bin_name] = std::move(child_bin);
+        child_bin->parent = this;
+        children[bin_name] = std::move(child_bin);
     }
 }
 
 ParamBin::ParamBin() : 
-    parent_bin(nullptr),
+    parent(nullptr),
     si_obj(new scales::SIscalings())
 {
 }
 
 
 ParamBin::ParamBin(const char* FILE) : 
-    parent_bin(nullptr),
+    parent(nullptr),
     si_obj(new scales::SIscalings()) 
 {
     loadParamFile(FILE);
 }
 
 ParamBin::ParamBin(std::string fileName) : 
-    parent_bin(nullptr),
+    parent(nullptr),
     si_obj(new scales::SIscalings()) 
 {
     loadParamFile(fileName);
@@ -69,7 +115,7 @@ std::string ParamBin::getStrParam(const std::string& name) const
     std::string key = pw::eatWhiteSpace(name);
     if(searchParamMap(key,strval))
         return strval;
-    if(searchTree(key,strval)) 
+    if(searchAliasTree(key,strval)) 
         return strval;
     throw ParamBinKeyException(key);
 }
@@ -78,8 +124,6 @@ void ParamBin::set(const NamedBin& named_bin)
 {
     setBin(named_bin.name(),named_bin.bin());
 }
-
-
 
 //ParamMap ParamBin::getParamMap() const {
 //    ParamMap map(params);
@@ -95,15 +139,14 @@ void ParamBin::set(const NamedBin& named_bin)
 //    }
 //    return map;
 //}
-                     
 
 std::string ParamBin::setParamKey(const std::string& name)
 {
     std::string key = pw::eatWhiteSpace(pw::removeSubString(name,'(',')'));
     std::string alias = pw::eatWhiteSpace(pw::subString(name,'(',')')); 
     if(!alias.empty()){
-        aliasMap[alias] = key;
-        reverseAliasMap[key] = alias;
+        alias_map[alias] = key;
+        reverse_alias_map[key] = alias;
     }
     return key;
 }
@@ -118,39 +161,22 @@ bool ParamBin::searchParamMap(const std::string& key,std::string& strval) const
     return false;
 }
 
-bool ParamBin::searchTree(const std::string& alias_key,std::string& strval) const
+bool ParamBin::searchAliasTree(const std::string& alias_key,std::string& strval) const
 {
     // Check current bin alias'
-    auto it = aliasMap.find(alias_key);
-    if(it != aliasMap.cend()){
+    auto it = alias_map.find(alias_key);
+    if(it != alias_map.cend()){
         std::string key = (*it).second;
         return searchParamMap(key,strval);
     }
     // Check child bins
-    for(const auto& kv : child_bins) {
-        if(kv.second->searchTree(alias_key,strval))
+    for(const auto& kv : children) {
+        if(kv.second->searchAliasTree(alias_key,strval))
             return true;
     }
     return false;
 }
 
-
-//template<>
-//void ParamBin::get(const std::string& name,double& val) const
-//{
-//    std::string strval;
-//    std::string key = pw::eatWhiteSpace(name);
-//
-//    if(searchParamMap(key,strval)){
-//        convertFromString<double>(strval,val);
-//        return;
-//    }
-//    else if(searchTree(key,strval)) {
-//       convertFromString<double>(strval,val);
-//       return;
-//    }
-//    throw ParamBinKeyException(key);
-//}
 
 
 //double ParamBin::processScale(const std::string& key,const std::string& scale,double val) const
@@ -270,7 +296,7 @@ void ParamBin::loadParamFile(const char* FILE)
             levels.push_back(level);
             ParamBin* bin = parents.back();
             bin->setBin(group_name,std::unique_ptr<ParamBin>(new ParamBin));
-            parents.push_back(bin->child_bins[group_name].get());
+            parents.push_back(bin->children[group_name].get());
         }
     }
 }
@@ -287,8 +313,8 @@ void ParamBin::printBin(std::ostream& os) const{
         for(int i = 0; i < depth; i++)
             name += EMPTY_CHARS;
         name += it->first;
-        auto ait = reverseAliasMap.find(it->first);
-        if(ait != reverseAliasMap.cend())
+        auto ait = reverse_alias_map.find(it->first);
+        if(ait != reverse_alias_map.cend())
             name += '(' + ait->second + ')'; 
 
         os << std::setiosflags(std::ios::left) << std::setw(40) << name + ":";
@@ -296,8 +322,8 @@ void ParamBin::printBin(std::ostream& os) const{
         it++;
     }
     os << std::endl;
-    auto bit = child_bins.cbegin();
-    while(bit != child_bins.cend()){
+    auto bit = children.cbegin();
+    while(bit != children.cend()){
         std::string group_name;
         for(int i = 0; i < depth; i++)
             group_name += EMPTY_CHARS;
@@ -318,7 +344,7 @@ std::ostream& operator<<(std::ostream& os,const ParamBin& bin)
 
 bool ParamBin::inBin(const std::string& name) const
 {
-    if(params.count(name) > 0 || child_bins.count(name) > 0) 
+    if(params.count(name) > 0 || children.count(name) > 0) 
         return true;
     return false;
 }
@@ -333,13 +359,13 @@ int ParamBin::size(const std::string& name) const
 
 bool ParamBin::empty() const
 {
-    return (params.empty() && child_bins.empty() ? true : false);
+    return (params.empty() && children.empty() ? true : false);
 }
 
 ParamBin& ParamBin::getBin(const std::string& name) 
 {
-    auto it = child_bins.find(name);
-    if(it != child_bins.cend())
+    auto it = children.find(name);
+    if(it != children.cend())
         return *it->second;
     else
         throw ParamBinKeyException(name);
@@ -347,8 +373,8 @@ ParamBin& ParamBin::getBin(const std::string& name)
 
 const ParamBin& ParamBin::getBin(const std::string& name) const
 {
-    auto it = child_bins.find(name);
-    if(it != child_bins.cend())
+    auto it = children.find(name);
+    if(it != children.cend())
         return *it->second;
     else
         throw ParamBinKeyException(name);
@@ -359,8 +385,7 @@ bool ParamBin::clear(const std::string& name)
 {
     if(inBin(name)){
         params.erase(name);
-        child_bins.erase(name);
-        //scaleMap.erase(name);
+        children.erase(name);
         return true;
     }
     else 
@@ -370,7 +395,7 @@ bool ParamBin::clear(const std::string& name)
 void ParamBin::clearAll() 
 {
     params.clear();
-    child_bins.clear();
+    children.clear();
     //scaleMap.clear();
 }
 
@@ -460,15 +485,15 @@ void ParamBin::set(const std::string& name,const ParamBin& bin)
 void ParamBin::setBin(const std::string& name,const ParamBin& bin)
 {
     std::unique_ptr<ParamBin> child_bin(new ParamBin(bin));
-    child_bin->parent_bin = this;
-    child_bins[name] = std::move(child_bin);
+    child_bin->parent = this;
+    children[name] = std::move(child_bin);
 }
 
 // Pass by pointers simply transfers ownership of pointer
 void ParamBin::setBin(const std::string& name,std::unique_ptr<ParamBin> bin)
 {
-    bin->parent_bin = this;
-    child_bins[name] = std::move(bin);
+    bin->parent = this;
+    children[name] = std::move(bin);
 }
 
 std::vector<std::string> ParamBin::inBin(const std::vector<std::string>& nameVec) const

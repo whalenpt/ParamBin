@@ -17,23 +17,28 @@
 
 int main(int argc,char* argv[])
 {
+  std::cout << "Parameter scalings are allowed for double types.\n"
+            << "Scales are placed in brackets ([...]) and can be simple SI scalings\n"
+            << "or other double typed parameters. If scaling by a double value, the\n"
+            << "parameter can be in the root bin or any of its children/grandchildren etc.\n";
 
   ParamBin bin;
   bin << NamedParam<std::string>("var1","100.0 [cm]");
-  bin << NamedParam<std::string>("var2","'Commas, there are a few, in this string'");
+  bin << NamedParam<std::string>("var2","String with commas, brackets([blah]), and parenthesis");
   bin << NamedParam<std::string>("var3","0.4 [mum], 0.5 [mum], 0.6 [mum]");
   bin << NamedParam<int>("A",1) << NamedParam<int>("B",2);
 
+  std::cout << bin << std::endl << std::endl;
+
   std::cout << "var1 = " << bin.getDbl("var1") << std::endl;
   std::cout << "var2 = " << bin.getStr("var2") << std::endl;
-
   auto dbl_vec = bin.getDblVec("var3");
   std::cout << "var3 = ";
   for(auto v : dbl_vec)
       std::cout << v << ' ';
   std::cout << std::endl;
 
-  // += operator equivalent to bin.set(name,val)
+  // operator << equivalent to bin.set(name,val)
   bin << NamedParam<double>("var4",3.0);
   std::cout << "var4 = " << bin.getDbl("var4") << std::endl;
 
@@ -52,6 +57,7 @@ int main(int argc,char* argv[])
   ParamBin grid;
   ParamBin T_group;
   T_group << NamedParam<std::string>("GridSize","16.0 [tp]");
+  //T_group << NamedParam<std::string>("GridSize","16.0");
   T_group << NamedParam<int>("NumberPoints",2048);
   grid << NamedBin("T",T_group);
   bin << NamedBin("GRID",grid);
@@ -67,14 +73,9 @@ int main(int argc,char* argv[])
   bin << NamedBin("INPUT",input);
 
   std::cout << bin << std::endl << std::endl;
+  std::cout << "tp = " << tin.getDbl("tp") << std::endl;
+  std::cout << "GridSize = " <<  bin.getBin("GRID").getBin("T").getDbl("GridSize") << std::endl;
 
-  std::cout << "PulseWidth(tp) is stored as the parameter named PulseWidth with \n \
-      typical access through the group bins INPUT and T. However, there is now an \n \
-      additional way to access the parameter through the name 'tp' that bypasses \n \
-      the group access points. This also gives the parameter a potentially much shorter \n \
-      name to reference.\n\n";
-//  std::cout << "PulseWidth = " << bin.getBin("INPUT").getBin("T").getDbl("PulseWidth") << std::endl;
-//  std::cout << "tp = " << bin.getDbl("tp");
 
   return 0;
 }
