@@ -20,29 +20,36 @@ void ParamBin::get(const std::string& name,double& val) const
 
     std::string strscale = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
     if(!strscale.empty()){
-        if(si_obj->ValidScaling(strscale)) { // Look for a matching SI scale
-            val = si_obj->ProcessScaling(strscale,val);
-            return;
-        } // Check for scale to be a variable in the current bin
-        else if(searchParamMap(strscale,strval)){
-            double scale;
-            convertFromString<double>(strval,scale);
-            val *= scale;
-            return; 
-        }
-        else{ // Check for the scale to be an alias, starts at top level parent
-            const ParamBin* top = this;
-            while(top->parent != nullptr)
-                top = top->parent;
-            if(top->searchAliasTree(strscale,strval)){
-                double scale;
-                convertFromString<double>(strval,scale);
-                val *= scale;
-                return;
-            } 
-        }
-        throw ParamBinScaleException(strscale);
+        double scale = evalScale(strscale);
+        val *= scale;
     }
+}
+
+double ParamBin::evalScale(const std::string& strscale) const
+{
+    if(si_obj->isValid(strscale)) { // Look for a matching SI scale
+        return si_obj->getScale(strscale);
+    } // Check for scale to be a variable in the current bin
+    else if(params.count(strscale) > 0)
+        return getDbl(strscale);
+    else{ // Check for the scale to be an alias, starts at top level parent
+        const ParamBin* top = this;
+        while(top->parent != nullptr)
+            top = top->parent;
+
+        std::string strval;
+        if(top->searchAliasTree(strscale,strval)){
+            double rawscale;
+            std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
+            convertFromString<double>(rawval,rawscale);
+
+            std::string strscale_two = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
+            if(!strscale_two.empty())
+                return rawscale*evalScale(strscale_two);
+            return rawscale;
+        } 
+    }
+    throw ParamBinScaleException(strscale);
 }
 
 //template<>
@@ -392,11 +399,12 @@ bool ParamBin::clear(const std::string& name)
         return false;
 }
 
-void ParamBin::clearAll() 
+void ParamBin::clear() 
 {
     params.clear();
     children.clear();
-    //scaleMap.clear();
+    alias_map.clear();
+    reverse_alias_map.clear();
 }
 
 

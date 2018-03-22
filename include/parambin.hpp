@@ -164,8 +164,8 @@ class ParamBin{
         std::vector<std::string> notInBin(const std::vector<std::string>&) const;
         int size(const std::string& name) const;
         bool empty() const;
+        void clear();
         bool clear(const std::string& name);
-        void clearAll(); // Remove all params
 
     private:
 
@@ -183,6 +183,7 @@ class ParamBin{
         bool searchAliasTree(const std::string& key,std::string& strval) const;
         bool searchParamMap(const std::string& key,std::string& strval) const;
         std::string getStrParam(const std::string& name) const;
+        double evalScale(const std::string& strscale) const;
 
 
 //        double processScale(const std::string& key,const std::string& scale,double val) const;

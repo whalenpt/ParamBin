@@ -7,13 +7,24 @@
 #include<string>
 #include<iterator>
 #include<iostream>
+#include<exception>
 #include <pwutils/pwstrings.h>
 
 namespace scales{
 
+  class ScalingException : public std::exception
+  {
+      public:
+          explicit ScalingException(const std::string& msg) : m_msg(msg) {}
+          ~ScalingException() {};
+          const char* what() const noexcept { return m_msg.c_str(); }
+      private:
+          std::string m_msg;
+  };
+
   typedef std::pair<std::string,double> dblPair;
   typedef std::map<std::string,double> dblMap;
-  void ParseString(const std::string& str,std::string& num,std::string& den);
+  void parseString(const std::string& str,std::string& num,std::string& den);
 
   const std::string YOTTA = "Y";
   const std::string ZETTA = "Z";
@@ -60,17 +71,15 @@ namespace scales{
     public:
       SIscalings();
       ~SIscalings() {};
-      double ProcessScaling(const std::string& str,double val) const;
-      bool ValidScaling(const std::string& str) const;
+      bool isValid(const std::string& str) const;
       double getScale(const std::string& str) const;
      private:
       dblMap siMap;
       dblMap conMap;
       std::vector<std::string> unitList;
       std::vector<dblPair> prefixList;
-      double ProcessDiv(const std::string& str,double val) const;
-      double ProcessMult(const std::string& str,double val) const;
-      bool CheckScale(const std::string& str) const;
+      double processScale(const std::string& str) const;
+      bool checkScale(const std::string& str) const;
   };
 }
 

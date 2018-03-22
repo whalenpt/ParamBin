@@ -57,7 +57,6 @@ int main(int argc,char* argv[])
   ParamBin grid;
   ParamBin T_group;
   T_group << NamedParam<std::string>("GridSize","16.0 [tp]");
-  //T_group << NamedParam<std::string>("GridSize","16.0");
   T_group << NamedParam<int>("NumberPoints",2048);
   grid << NamedBin("T",T_group);
   bin << NamedBin("GRID",grid);
@@ -75,6 +74,17 @@ int main(int argc,char* argv[])
   std::cout << bin << std::endl << std::endl;
   std::cout << "tp = " << tin.getDbl("tp") << std::endl;
   std::cout << "GridSize = " <<  bin.getBin("GRID").getBin("T").getDbl("GridSize") << std::endl;
+
+
+  bin.clear();
+  bin.set("A","10 [B]");
+  bin.set("B","15 [C]");
+  bin.set("C","2 [D]");
+  bin.set("D","3");
+
+  std::cout << bin << std::endl << std::endl;
+  std::cout << "A = " << bin.getDbl("A") << std::endl;
+
 
 
   return 0;
