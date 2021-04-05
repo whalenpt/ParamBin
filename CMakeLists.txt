@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.19.1)
 set(CMAKE_CXX_STANDARD 17)
+message("CXX Standard: ${CMAKE_CXX_STANDARD}")
 
 set(THIS parambin)
 project(${THIS} VERSION 0.0.1 DESCRIPTION "Container for parameters")
+
+message("CMake Project Name: ${CMAKE_PROJECT_NAME}")
+message("Project Name: ${PROJECT_NAME}")
 
 set(SRC_FILES
 	src/parambin.cpp
@@ -30,5 +34,6 @@ install(TARGETS ${THIS}
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
+add_subdirectory(tests)
 
 

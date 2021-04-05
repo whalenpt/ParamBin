@@ -30,40 +30,43 @@ class ParamBinException : public std::exception
 class ParamBinKeyException : public ParamBinException
 {
     public:
-        explicit ParamBinKeyException(const std::string& nm) : name(nm) {}
+        explicit ParamBinKeyException(const std::string& nm) {
+            msg = "The key " + nm + " was not found in the ParamBin.";
+        }
         ~ParamBinKeyException() {};
-        const char* what() const noexcept {
-            std::string msg = "The key " + name + " was not found in the ParamBin.";
+        const char* what() const noexcept override {
             return msg.c_str();
         }
     private:
-        std::string name;
+				std::string msg;
 };
 
 class ParamBinFileException : public ParamBinException
 {
     public:
-        explicit ParamBinFileException(const std::string& nm) : name(nm) {}
+        explicit ParamBinFileException(const std::string& nm) {
+            msg = "Failed to open the ParamBin parameter file " + nm + ".";
+        }
         ~ParamBinFileException() {};
-        const char* what() const noexcept {
-            std::string msg = "Failed to open the ParamBin parameter file " + name + ".";
+        const char* what() const noexcept override {
             return msg.c_str();
         }
     private:
-        std::string name;
+				std::string msg;
 };
 
 class ParamBinScaleException : public ParamBinException
 {
     public:
-        explicit ParamBinScaleException(const std::string& scale) : m_scale(scale) {}
+        explicit ParamBinScaleException(const std::string& scale){
+            msg = "The scale " + scale + " could not be processed.";
+        } 
         ~ParamBinScaleException() {};
-        const char* what() const noexcept {
-            std::string msg = "The scale " + m_scale + " could not be processed.";
+        const char* what() const noexcept override {
             return msg.c_str();
         }
     private:
-        std::string m_scale;
+				std::string msg;
 };
 
 
