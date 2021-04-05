@@ -54,12 +54,8 @@ double ParamBin::evalScale(const std::string& strscale) const
     else if(params.count(strscale) > 0)
         return getDbl(strscale);
     else{ // Check for the scale to be an alias, starts at top level parent
-        const ParamBin* top = this;
-        while(top->parent != nullptr)
-            top = top->parent;
-
         std::string strval;
-        if(top->searchAliasTree(strscale,strval)){
+        if(rootAliasSearch(strscale,strval)){
             double rawscale;
             std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
             convertFromString<double>(rawval,rawscale);
@@ -89,6 +85,26 @@ ParamBin::ParamBin(const ParamBin& bin) : parent(nullptr),
         child_bin->parent = this;
         children[bin_name] = std::move(child_bin);
     }
+}
+
+// Assignment
+ParamBin& ParamBin::operator = (const ParamBin& bin)
+{
+    parent = nullptr;
+    params = bin.params;
+    alias_map =  bin.alias_map;
+    reverse_alias_map = bin.reverse_alias_map;
+    si_obj = bin.si_obj;
+    {
+        for(auto it = bin.children.cbegin() ; it != bin.children.cend(); it++)
+        {
+            std::string bin_name = it->first;
+            std::unique_ptr<ParamBin> child_bin(new ParamBin(*it->second));
+            child_bin->parent = this;
+            children[bin_name] = std::move(child_bin);
+        }
+    }
+    return *this;
 }
 
 ParamBin::ParamBin() : 
@@ -131,7 +147,7 @@ std::string ParamBin::getStrParam(const std::string& name) const
     std::string key = pw::eatWhiteSpace(name);
     if(searchParamMap(key,strval))
         return strval;
-    if(searchAliasTree(key,strval)) 
+    if(rootAliasSearch(key,strval)) 
         return strval;
     throw ParamBinKeyException(key);
 }
@@ -155,6 +171,16 @@ void ParamBin::set(const NamedBin& named_bin)
 //    }
 //    return map;
 //}
+
+void ParamBin::setAlias(const std::string& name,const std::string& alias)
+{
+    std::string key = pw::eatWhiteSpace(name);
+    if(params.count(key) > 0){
+        alias_map[alias] = key;
+        reverse_alias_map[key] = alias;
+    } else
+        throw ParamBinKeyException(key);
+}
 
 std::string ParamBin::setParamKey(const std::string& name)
 {
@@ -193,16 +219,13 @@ bool ParamBin::searchAliasTree(const std::string& alias_key,std::string& strval)
     return false;
 }
 
-
-
-//double ParamBin::processScale(const std::string& key,const std::string& scale,double val) const
-//{
-//    if(si_obj->ValidScaling(scale))
-//        return si_obj->ProcessScaling(scale,val);
-//    if(inBin(scale))
-//        return val*getDbl(scale);
-//    return val;
-//}
+bool ParamBin::rootAliasSearch(const std::string& alias_key,std::string& strval) const 
+{
+    const ParamBin* top = this;
+    while(top->parent != nullptr)
+        top = top->parent;
+    return top->searchAliasTree(alias_key,strval);
+}
 
 
 template <>

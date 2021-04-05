@@ -97,6 +97,7 @@ class ParamBin{
         ParamBin(const ParamBin& bin);
         ParamBin(const char* FILE);
         ParamBin(std::string fileName);
+        ParamBin& operator = (const ParamBin& bin);
         void loadParamFile(const char* FILE);
         void loadParamFile(std::string FILE) {loadParamFile(FILE.c_str());}
   
@@ -153,6 +154,8 @@ class ParamBin{
         // Transfer ownership of bin 
         void setBin(const std::string& name,std::unique_ptr<ParamBin> bin);
 
+        void setAlias(const std::string& name,const std::string& alias);
+
         friend std::ostream& operator<<(std::ostream&,const ParamBin& bin);
 
         template<typename T>
@@ -177,16 +180,15 @@ class ParamBin{
 
         std::shared_ptr<scales::SIscalings> si_obj;
 
-        void printBin(std::ostream& os) const;
         std::string setParamKey(const std::string& name);
+        std::string getStrParam(const std::string& name) const;
+        void printBin(std::ostream& os) const;
 
         bool searchAliasTree(const std::string& key,std::string& strval) const;
         bool searchParamMap(const std::string& key,std::string& strval) const;
-        std::string getStrParam(const std::string& name) const;
+
+        bool rootAliasSearch(const std::string& alias_key,std::string& strval) const;
         double evalScale(const std::string& strscale) const;
-
-
-//        double processScale(const std::string& key,const std::string& scale,double val) const;
 };
 
 class NamedBin

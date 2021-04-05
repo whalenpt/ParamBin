@@ -19,8 +19,7 @@ int main(int argc,char* argv[])
 {
   std::cout << "Parameter scalings are allowed for double types.\n"
             << "Scales are placed in brackets ([...]) and can be simple SI scalings\n"
-            << "or other double typed parameters. If scaling by a double value, the\n"
-            << "parameter can be in the root bin or any of its children/grandchildren etc.\n";
+            << "or other double typed parameters.\n";
 
   ParamBin bin;
   bin << NamedParam<std::string>("var1","100.0 [cm]");
@@ -54,10 +53,27 @@ int main(int argc,char* argv[])
   std::cout << std::endl;
 
 
+  std::cout << std::endl << std::endl;
+  std::cout << "Each parameter can have an alternative alias name. This parementers value\n"
+            << "can either be accessed through the alias or the primary name, they both\n"
+            << "return the same value when used with a get function. There are important\n" 
+            << "distinction between the two though: values may only be set through the primary\n"
+            << "name. Using a set function with an alias will create a new primary name,\n"
+            << "something that, generally, is probably not intended. Secondly, alias names\n" 
+            << "have expanded access to values when it comes to the tree structure of a bin.\n"
+            << "The alias values are found via a recursive search from the root level bin\n"
+            << "and therefore they do not need to be accessed through subbins as with primary names.\n"
+            << "For parameters that are scaled by other parameters, short names and global access\n" 
+            << "are convenient as can be seen in the GridSize example below.\n";
+  std::cout << std::endl << std::endl;
+
   ParamBin grid;
   ParamBin T_group;
   T_group << NamedParam<std::string>("GridSize","16.0 [tp]");
   T_group << NamedParam<int>("NumberPoints",2048);
+
+  T_group.setAlias("NumberPoints","nt");
+
   grid << NamedBin("T",T_group);
   bin << NamedBin("GRID",grid);
 
@@ -72,8 +88,12 @@ int main(int argc,char* argv[])
   bin << NamedBin("INPUT",input);
 
   std::cout << bin << std::endl << std::endl;
-  std::cout << "tp = " << tin.getDbl("tp") << std::endl;
+  std::cout << "PulseWidth(tp) = " << bin.getDbl("tp") << std::endl;
   std::cout << "GridSize = " <<  bin.getBin("GRID").getBin("T").getDbl("GridSize") << std::endl;
+  std::cout << "NumberPoints(nt) = " << bin.getInt("nt") << std::endl;
+  std::cout << "Its also possible to access NumberPoints through nt in the INPUT bin\n"
+            << "even though GRID is not a subbin of INPUT. They have the same root bin.\n";
+  std::cout << "NumberPoints(nt) = " << bin.getBin("INPUT").getInt("nt");
 
 
   bin.clear();
