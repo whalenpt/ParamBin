@@ -14,25 +14,25 @@ target_link_libraries(test6 PRIVATE parambin)
 
 add_custom_command(TARGET test1 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
-					${CMAKE_SOURCE_DIR}/tests/input1.txt
+					${CMAKE_CURRENT_SOURCE_DIR}/input1.txt
 					${CMAKE_CURRENT_BINARY_DIR}/input1.txt
 )
 
 add_custom_command(TARGET test1 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
-					${CMAKE_SOURCE_DIR}/tests/input2.txt
+					${CMAKE_CURRENT_SOURCE_DIR}/input2.txt
 					${CMAKE_CURRENT_BINARY_DIR}/input2.txt
 )
 
 add_custom_command(TARGET test2 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
-					${CMAKE_SOURCE_DIR}/tests/input1.txt
+					${CMAKE_CURRENT_SOURCE_DIR}/input1.txt
 					${CMAKE_CURRENT_BINARY_DIR}/input1.txt
 )
 
 add_custom_command(TARGET test2 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
-					${CMAKE_SOURCE_DIR}/tests/input2.txt
+					${CMAKE_CURRENT_SOURCE_DIR}/input2.txt
 					${CMAKE_CURRENT_BINARY_DIR}/input2.txt
 )
 
