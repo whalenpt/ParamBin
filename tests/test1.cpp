@@ -1,10 +1,10 @@
 /*------------------------------------------------------------------------------
  *   
- *    Author: Patrick Townsend Whalen   
- *    Email: pwhalen@email.arizona.edu
+ *    Author: Patrick Whalen   
+ *    Email: whalenpt@gmail.com
  *    Status: Development
- *    Date: (Enter Date, eg. 06/30/15)
- *    Description: (Enter Program Description, e.g. 
+ *    Date: 04/09/2021
+ *    Description: "Testing of ParamBin class."
  *
 ------------------------------------------------------------------------------*/
 
@@ -13,7 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "../include/parambin.hpp"
+#include <parambin.hpp>
 
 //------------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ int main(int argc,char* argv[])
   using std::cout;
 
   if(argc == 2){
+    std::cout << "FLAG 1" << std::endl;
     ParamBin input(argv[1]);
     std::cout << input << std::endl;
     if(input.size("SimulationName") == 1)

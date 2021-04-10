@@ -1,9 +1,10 @@
 /*------------------------------------------------------------------------------
  *   
- *    Author: Patrick Townsend Whalen   
+ *    Author: Patrick Whalen   
+ *    Email: whalenpt@gmail.com
  *    Status: Development
- *    Date: (Enter Date, eg. 03/21/18)
- *    Description: (Enter Program Description, e.g. 
+ *    Date: 04/09/2021
+ *    Description: "Testing of ParamBin class."
  *
 ------------------------------------------------------------------------------*/
 
@@ -12,7 +13,7 @@
 #include <iostream>
 #include <string>
 #include <memory>
-#include "../include/parambin.hpp"
+#include <parambin.hpp>
 
 //------------------------------------------------------------------------------
 
