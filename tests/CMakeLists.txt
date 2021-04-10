@@ -12,6 +12,22 @@ target_link_libraries(test4 PRIVATE parambin)
 target_link_libraries(test5 PRIVATE parambin)
 target_link_libraries(test6 PRIVATE parambin)
 
+if(WIN32)
+	foreach(ARG test1 test2 test3 test4 test5 test6)
+		add_custom_command(TARGET ${ARG} 
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:parambin> ${CMAKE_CURRENT_BINARY_DIR}
+			COMMENT "Copy parambin dll file to ${CMAKE_CURRENT_BINARY_DIR} directory" VERBATIM
+		)
+
+		add_custom_command(TARGET ${ARG}
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:pwutils> ${CMAKE_CURRENT_BINARY_DIR}
+			COMMENT "Copy pwutils dll file to ${CMAKE_CURRENT_BINARY_DIR} directory" VERBATIM
+		)
+	endforeach()
+endif()
+
 add_custom_command(TARGET test1 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 					${CMAKE_CURRENT_SOURCE_DIR}/input1.txt
