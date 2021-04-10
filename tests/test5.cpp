@@ -28,7 +28,6 @@ int main(int argc,char* argv[])
   bin << NamedParam<int>("A",1) << NamedParam<int>("B",2);
 
   std::cout << bin << std::endl << std::endl;
-
   std::cout << "var1 = " << bin.getDbl("var1") << std::endl;
   std::cout << "var2 = " << bin.getStr("var2") << std::endl;
   auto dbl_vec = bin.getDblVec("var3");
