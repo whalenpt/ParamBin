@@ -76,8 +76,6 @@ using ParamMap = std::map<std::string,std::string>;
 using AliasMap = std::map<std::string,std::string>;
 using BinMap = std::map<std::string,std::unique_ptr<ParamBin>>;
 
-namespace scales{ class SIscalings; }
-
 template <class T>
 class NamedParam
 {
@@ -182,8 +180,6 @@ class ParamBin{
         AliasMap alias_map;
         AliasMap reverse_alias_map;
 
-        std::shared_ptr<scales::SIscalings> si_obj;
-
         std::string setParamKey(const std::string& name);
         std::string getStrParam(const std::string& name) const;
         void printBin(std::ostream& os) const;
@@ -192,7 +188,6 @@ class ParamBin{
         bool searchParamMap(const std::string& key,std::string& strval) const;
 
         bool rootAliasSearch(const std::string& alias_key,std::string& strval) const;
-        double evalScale(const std::string& strscale) const;
 };
 
 class NamedBin

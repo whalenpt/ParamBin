@@ -6,7 +6,6 @@
 #include <map>
 #include <set>
 
-#include "siscales.h"
 #include "parambin.hpp"
 #include <pwutils/pwstrings.h>
 
@@ -17,12 +16,6 @@ void ParamBin::get(const std::string& name,double& val) const
     std::string strval = getStrParam(name);
     std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
     convertFromString<double>(rawval,val);
-
-    std::string strscale = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
-    if(!strscale.empty()){
-        double scale = evalScale(strscale);
-        val *= scale;
-    }
 }
 
 template<>
@@ -35,48 +28,16 @@ void ParamBin::get(const std::string& name,std::vector<double>& vals) const
         double val;
         std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
         convertFromString<double>(rawval,val);
-
-        std::string strscale = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
-        if(!strscale.empty()){
-            double scale = evalScale(strscale);
-            val *= scale;
-        }
         vals.push_back(val);
     }
 }
-
-
-double ParamBin::evalScale(const std::string& strscale) const
-{
-    if(si_obj->isValid(strscale)) { // Look for a matching SI scale
-        return si_obj->getScale(strscale);
-    } // Check for scale to be a variable in the current bin
-    else if(params.count(strscale) > 0)
-        return getDbl(strscale);
-    else{ // Check for the scale to be an alias, starts at top level parent
-        std::string strval;
-        if(rootAliasSearch(strscale,strval)){
-            double rawscale;
-            std::string rawval = pw::eatWhiteSpace(pw::removeSubString(strval,'[',']'));
-            convertFromString<double>(rawval,rawscale);
-
-            std::string strscale_two = pw::eatWhiteSpace(pw::subString(strval,'[',']')); 
-            if(!strscale_two.empty())
-                return rawscale*evalScale(strscale_two);
-            return rawscale;
-        } 
-    }
-    throw ParamBinScaleException(strscale);
-}
-
 
 // Only children are copied, parent bin is considered root of the tree
 ParamBin::ParamBin(const ParamBin& bin) : parent(nullptr),
     params(bin.params),
     children(),
     alias_map(bin.alias_map),
-    reverse_alias_map(bin.reverse_alias_map),
-    si_obj(bin.si_obj)
+    reverse_alias_map(bin.reverse_alias_map)
 {
     for(auto it = bin.children.cbegin() ; it != bin.children.cend(); it++)
     {
@@ -94,7 +55,6 @@ ParamBin& ParamBin::operator = (const ParamBin& bin)
     params = bin.params;
     alias_map =  bin.alias_map;
     reverse_alias_map = bin.reverse_alias_map;
-    si_obj = bin.si_obj;
     {
         for(auto it = bin.children.cbegin() ; it != bin.children.cend(); it++)
         {
@@ -108,22 +68,19 @@ ParamBin& ParamBin::operator = (const ParamBin& bin)
 }
 
 ParamBin::ParamBin() : 
-    parent(nullptr),
-    si_obj(new scales::SIscalings())
+    parent(nullptr)
 {
 }
 
 
 ParamBin::ParamBin(const char* FILE) : 
-    parent(nullptr),
-    si_obj(new scales::SIscalings()) 
+    parent(nullptr)
 {
     loadParamFile(FILE);
 }
 
 ParamBin::ParamBin(std::string fileName) : 
-    parent(nullptr),
-    si_obj(new scales::SIscalings()) 
+    parent(nullptr)
 {
     loadParamFile(fileName);
 }
