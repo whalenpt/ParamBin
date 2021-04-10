@@ -101,6 +101,7 @@ class ParamBin{
         ParamBin(const char* FILE);
         ParamBin(std::string fileName);
         ParamBin& operator = (const ParamBin& bin);
+
         void loadParamFile(const char* FILE);
         void loadParamFile(std::string FILE) {loadParamFile(FILE.c_str());}
   
