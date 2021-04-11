@@ -5,6 +5,7 @@
 #include <sstream>
 #include <map>
 #include <set>
+#include <filesystem>
 
 #include "parambin.hpp"
 #include <pwutils/pwstrings.h>
@@ -114,20 +115,6 @@ void ParamBin::set(const NamedBin& named_bin)
     setBin(named_bin.name(),named_bin.bin());
 }
 
-//ParamMap ParamBin::getParamMap() const {
-//    ParamMap map(params);
-//    for(auto it = scaleMap.cbegin(); it != scaleMap.cend(); it++)
-//    {
-//        auto search = map.find(it->first);
-//        if(search != map.end()){
-//            std::string name = it->first;
-//            std::string val = search->second + " [" + it->second + "]" ;
-//            map.erase(search);
-//            map[name] = val;
-//        }
-//    }
-//    return map;
-//}
 
 void ParamBin::setAlias(const std::string& name,const std::string& alias)
 {
@@ -229,7 +216,7 @@ std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed)
         line_feed = pw::decommentString(line_feed,"//");
     }
     // Check for line continuation
-    while(line_feed.back() == '\\'){
+    while(!line_feed.empty() && line_feed.back() == '\\'){
         std::string st(line_feed.substr(0,line_feed.size()-1));
         std::string linecont;
         getline(fin,linecont);
@@ -253,15 +240,21 @@ void lineToNameVal(const std::string& line_feed,std::string& name,std::string& v
 
 void ParamBin::loadParamFile(const char* FILE)
 {
-    std::ifstream fin(FILE);
+		std::string FILENAME(FILE);
+		namespace fs = std::filesystem;
+		fs::path local_path = fs::path(std::string(FILENAME));
+		if(!fs::exists(local_path)){
+				fs::path current_dir = fs::current_path();
+				fs::path full_path = current_dir / FILENAME;
+				FILENAME = full_path.string();
+		}
+    std::ifstream fin(FILENAME);
     if(!fin.is_open())
     {
         fin.clear();
         throw ParamBinFileException(FILE);
     }
-
     // Levels determine parent/child relationships, root level is -1 with a parent=nullptr
-
     int level = -1;
     std::vector<int> levels;
     std::vector<ParamBin*> parents;
@@ -281,7 +274,6 @@ void ParamBin::loadParamFile(const char* FILE)
             // Group found.
             std::string group_name(line_feed);
             group_name = pw::eatWhiteSpace(group_name);
-
             // Calculate amount of line whitespace to start string to
             // determine parent/child relationship
             level = pw::countFirstChar(line_feed," ");

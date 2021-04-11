@@ -19,13 +19,8 @@
 
 int main(int argc,char* argv[])
 {
-
-  using std::cerr;
-  using std::endl;
-  using std::cout;
-
-  if(argc == 2){
-    std::cout << "FLAG 1" << std::endl;
+  if(argc > 1){
+    std::cout << "Filename: " << argv[1] << std::endl;
     ParamBin input(argv[1]);
     std::cout << input << std::endl;
     if(input.size("SimulationName") == 1)
@@ -36,18 +31,13 @@ int main(int argc,char* argv[])
             std::cout << "Sim Name[" << i << "] =" << vals[i] << std::endl;
     }
   }
-  else if(argc > 2)
-  {
-    cerr << "To many arguments to " << argv[0] << endl;
-    cerr << "ABORTING" << endl;
-    exit(EXIT_FAILURE);
-  }
   else 
   {
-    cerr << "Please specify an input file " << endl;
-    cerr << "ABORTING" << endl;
+    std::cerr << "Please specify an input file " << std::endl;
+    std::cerr << "ABORTING" << std::endl;
     exit(EXIT_FAILURE);
   }
+  return 0;
 }
 
 
