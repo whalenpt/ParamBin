@@ -7,6 +7,7 @@
 #include <string>
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <iterator>
@@ -98,8 +99,8 @@ class ParamBin{
         ParamBin(std::string fileName);
         ParamBin& operator = (const ParamBin& bin);
 
-        void loadParamFile(const char* FILE);
-        void loadParamFile(std::string FILE) {loadParamFile(FILE.c_str());}
+        void loadParamFile(std::string FILE); 
+        void loadParamFile(const char* FILE) {loadParamFile(std::string(FILE));}
   
         double getDbl(const std::string&) const;
         int getInt(const std::string&) const;
@@ -181,6 +182,7 @@ class ParamBin{
         std::string setParamKey(const std::string& name);
         std::string getStrParam(const std::string& name) const;
         void printBin(std::ostream& os) const;
+				void scanYAML(std::ifstream& fin);
 
         bool searchAliasTree(const std::string& key,std::string& strval) const;
         bool searchParamMap(const std::string& key,std::string& strval) const;

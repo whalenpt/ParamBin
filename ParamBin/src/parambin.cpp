@@ -73,7 +73,6 @@ ParamBin::ParamBin() :
 {
 }
 
-
 ParamBin::ParamBin(const char* FILE) : 
     parent(nullptr)
 {
@@ -114,7 +113,6 @@ void ParamBin::set(const NamedBin& named_bin)
 {
     setBin(named_bin.name(),named_bin.bin());
 }
-
 
 void ParamBin::setAlias(const std::string& name,const std::string& alias)
 {
@@ -237,23 +235,8 @@ void lineToNameVal(const std::string& line_feed,std::string& name,std::string& v
     vals = pw::eatWhiteSpace(vals);
 }
 
-
-void ParamBin::loadParamFile(const char* FILE)
+void ParamBin::scanYAML(std::ifstream& fin)
 {
-		std::string FILENAME(FILE);
-		namespace fs = std::filesystem;
-		fs::path local_path = fs::path(std::string(FILENAME));
-		if(!fs::exists(local_path)){
-				fs::path current_dir = fs::current_path();
-				fs::path full_path = current_dir / FILENAME;
-				FILENAME = full_path.string();
-		}
-    std::ifstream fin(FILENAME);
-    if(!fin.is_open())
-    {
-        fin.clear();
-        throw ParamBinFileException(FILE);
-    }
     // Levels determine parent/child relationships, root level is -1 with a parent=nullptr
     int level = -1;
     std::vector<int> levels;
@@ -287,6 +270,24 @@ void ParamBin::loadParamFile(const char* FILE)
             parents.push_back(bin->children[group_name].get());
         }
     }
+}
+
+void ParamBin::loadParamFile(std::string FILE)
+{
+		namespace fs = std::filesystem;
+		fs::path local_path = fs::path(FILE);
+		if(!fs::exists(local_path)){
+				fs::path current_dir = fs::current_path();
+				fs::path full_path = current_dir / FILE;
+				FILE = full_path.string();
+		}
+    std::ifstream fin(FILE);
+    if(!fin.is_open())
+    {
+        fin.clear();
+        throw ParamBinFileException(FILE);
+    }
+
 }
 
 void ParamBin::printBin(std::ostream& os) const{
