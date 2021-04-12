@@ -211,66 +211,6 @@ void lineToNameVal(const std::string& line_feed,std::string& name,std::string& v
     vals = pw::eatWhiteSpace(vals);
 }
 
-//void ParamBin::scanYAML(std::ifstream& fin)
-//{
-//    // Levels determine parent/child relationships, root level is -1 with a parent=nullptr
-//    int level = -1;
-//    std::vector<int> levels;
-//    std::vector<ParamBin*> parents;
-//
-//    levels.push_back(level);
-//    parents.push_back(this);
-//
-//    std::string line_feed;
-//    while(readNextLine(fin,line_feed))
-//    {
-//        // If a colon is found, then the line contains a paramater and not a group
-//        if(pw::countCharacters(line_feed,':') > 0){
-//            std::string name,vals;
-//            lineToNameVal(line_feed,name,vals);
-//            parents.back()->set(NamedParam<std::string>(name,vals));
-//        } else {
-//            // Group found.
-//            std::string group_name(line_feed);
-//            group_name = pw::eatWhiteSpace(group_name);
-//            // Calculate amount of line whitespace to start string to
-//            // determine parent/child relationship
-//            level = pw::countFirstChar(line_feed," ");
-//            while(level <= levels.back() && parents.size() > 0){
-//                parents.pop_back();
-//                levels.pop_back();
-//            }
-//            levels.push_back(level);
-//            ParamBin* bin = parents.back();
-//            bin->setBin(group_name,std::unique_ptr<ParamBin>(new ParamBin));
-//            parents.push_back(bin->children[group_name].get());
-//        }
-//    }
-//}
-//
-
-//std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed) 
-//{
-//    getline(fin,line_feed);
-//    line_feed = pw::decommentString(line_feed,"#");
-//    // Check that line_feed is not whitespace
-//    while(fin && pw::isWhitespace(line_feed)){
-//        getline(fin,line_feed);
-//        line_feed = pw::decommentString(line_feed,"#");
-//    }
-//    // Check for line continuation
-//    while(!line_feed.empty() && line_feed.back() == '#'){
-//        std::string st(line_feed.substr(0,line_feed.size()-1));
-//        std::string linecont;
-//        getline(fin,linecont);
-//        linecont = pw::decommentString(linecont,"#");
-//        linecont = pw::decommentString(linecont,"//");
-//        linecont = pw::eatWhiteSpace(linecont);
-//        line_feed = st + " " + linecont;
-//    }
-//    return fin;
-//}
-//
 std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed) 
 {
     getline(fin,line_feed);
@@ -374,9 +314,11 @@ void ParamBin::printBin(std::ostream& os) const{
     auto bit = children.cbegin();
     while(bit != children.cend()){
         std::string group_name;
+				// add empty chars before starting group name
         for(int i = 0; i < depth; i++)
             group_name += EMPTY_CHARS;
         group_name += bit->first;
+				group_name += ':';
         os << group_name << std::endl;
         depth++;
         bit->second->printBin(os);
