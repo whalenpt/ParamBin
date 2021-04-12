@@ -237,80 +237,51 @@ std::string convertToString(T val)
 	std::ostringstream oss;
 	oss << std::scientific << val;
 	std::string stre = oss.str();
+
 	// Check for decimal point
-	
 	if(pw::countCharacters(stre,'.') > 0){
-		std::cout << "VAL STRING: " << stre << std::endl;
+		//std::cout << "VAL STRING: " << stre << std::endl;
     // Found decimal point
 		//std::cout << "FOUND DECIMAL POINT: " << valstr << std::endl;
 		std::string decimal_part = pw::subString(stre,'.','e');
-		const size_t pos1 = decimal_part.find_last_not_of('0');
-		if(pos1 != std::string::npos){
-  			decimal_part = decimal_part.substr(0,pos1+1);
+		size_t pos = decimal_part.find_last_not_of('0');
+		if(pos != std::string::npos){
+  			decimal_part = decimal_part.substr(0,pos+1);
+		} else{
+				// 1.00000e5 - > 1.0e5
+  			decimal_part = "0";
 		}
-
-
-//		if(pos2 != std::string::npos && pos1 != std::string::npos && pos2 > pos1){
-				// Found a zero in the decimal point string
-				// Found a nonzero in the decimal point string
-//			std::cout << "DECIMAL PART SIMPLE : " << dpart_simple << std::endl;
-//		}
 		std::string exponent_part = pw::stripLast(stre,'e');
-		std::cout << "DECIMAL PART: " << decimal_part << std::endl;
-		std::cout << "EXPONENT PART: " << exponent_part << std::endl;
+		std::string exp_num,exp_sign;
+		// Remove '+' exponent sign for string storage
+		if(exponent_part.find_first_of('-') != std::string::npos){
+			exp_sign = "-";
+			exp_num = exponent_part.substr(1,std::string::npos);
+		} else if(exponent_part.find_first_of('+') != std::string::npos){
+			exp_sign = "";
+			exp_num = exponent_part.substr(1,std::string::npos);
+		} else{
+			exp_sign = "";
+			exp_num = exponent_part.substr(0,std::string::npos);
+		}
+		pos = exp_num.find_first_not_of('0');
+		if(pos != std::string::npos){
+   		exp_num = exp_num.substr(pos,std::string::npos);
+		} else
+			// replace 1.3e000 with 1.3e0
+			exp_num = "0";
+
+		exponent_part = exp_sign + exp_num;
+
+		std::string whole_part = pw::stripFirst(stre,'.');
+		stre =  whole_part + "." + decimal_part + "e" + exponent_part;
+		// std::cout << "EXPONENTIAL FORM: " << stre << std::endl;
 	}
-	std::cout << str << ", " << stre << std::endl;
-
-	
-
-//	// Check for decimal point
-//	if(pw::countCharacters(str,'.') > 0){
-//		std::cout << "VAL STRING: " << str << std::endl;
-//    // Found decimal point
-//		//std::cout << "FOUND DECIMAL POINT: " << valstr << std::endl;
-//		std::string before_dot = pw::parseFirst(str,'.');
-//		const size_t pos1 = before_dot.find_last_not_of('0');
-//		const size_t pos2 = before_dot.find_last_of('0');
-//		if(pos1 != std::string::npos){
-//			std::cout << "LAST NOT OF 0: " << pos1 << std::endl;
-//		}
-//		if(pos2 != std::string::npos){
-//			std::cout << "LAST OF 0: " << pos2 << std::endl;
-//		}
-//		if(pos2 != std::string::npos && pos1 != std::string::npos && pos2 ){
-//				// Found a zero in the before decimal point string
-//				// Found a nonzero in the before decimal point string
-//
-//		}
-//	}
-
+	// Check if exponential form is significantly shorter than fixed point
+	int FEWER_SPACES = 0;
+	if( (stre.size()+FEWER_SPACES) < str.size()) 
+			return stre;
 	return str;
-
-//		std::ostringstream oss;
-//		oss << std::setprecision(12) << std::noshowpoint << val;
-//		std::string valstr = oss.str();
-//		
-//		return oss.str();
-
-//		std::string valstr(std::to_string(val));
-//    std::ostringstream stm;
-//    stm.setf(std::ios_base::showpoint);
-//    stm.precision(12);
-//    stm << val;
-//    std::string valstr = stm.str();
-//    std::size_t found_dot = valstr.find_last_of(".");
-//    std::size_t found_e = valstr.find_last_of("e");
-//		std::cout << "CONVERT TO STRING: " << val << std::endl;
-//    if(found_dot != std::string::npos){
-//        std::string substr = valstr.substr(found_dot+1,found_e - found_dot - 1);
-//        std::string replace_str(substr); 
-//        while(replace_str[replace_str.size()-1] == '0')
-//            replace_str = replace_str.substr(0,replace_str.size()-1);
-//        if(replace_str.empty())
-//            replace_str = "0";
-//        valstr.replace(found_dot+1,found_e - found_dot - 1,replace_str);
-//    }
-//    return valstr;
 }
 
 template<typename T> 
