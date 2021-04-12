@@ -297,29 +297,31 @@ void ParamBin::scanYAML(std::ifstream& fin)
     while(readNextLine(fin,line_feed))
     {
 				std::vector<std::string> parsed_line_feed = pw::parseString(line_feed,':');
-				// If parsed_line_feed contains two items, then the first item is a key and the second is value for a named value parameter.
 				if(parsed_line_feed.size() == 0)
 						continue;
 				else if(parsed_line_feed.size() == 1){
-						// found a group
-            //std::string group_name(line_feed);
-            std::string group_name(parsed_line_feed[0]);
-            group_name = pw::eatWhiteSpace(group_name);
-            // Calculate amount of line whitespace to start string to
-            // determine parent/child relationship
-            level = pw::countFirstChar(line_feed," ");
-            while(level <= levels.back() && parents.size() > 0){
-                parents.pop_back();
-                levels.pop_back();
-            }
-            levels.push_back(level);
-            ParamBin* bin = parents.back();
-            bin->setBin(group_name,std::unique_ptr<ParamBin>(new ParamBin));
-            parents.push_back(bin->children[group_name].get());
+						throw;
 				} else if(parsed_line_feed.size() == 2){
 						std::string name(pw::eatWhiteSpace(parsed_line_feed[0]));
 						std::string val(pw::eatWhiteSpace(parsed_line_feed[1]));
-            parents.back()->set(NamedParam<std::string>(name,val));
+						// Found a group
+						if(val.empty()){
+								std::string group_name(parsed_line_feed[0]);
+								group_name = pw::eatWhiteSpace(group_name);
+								// Calculate amount of line whitespace to start string to
+								// determine parent/child relationship
+								level = pw::countFirstChar(line_feed," ");
+								while(level <= levels.back() && parents.size() > 0){
+										parents.pop_back();
+										levels.pop_back();
+								}
+								levels.push_back(level);
+								ParamBin* bin = parents.back();
+								bin->setBin(group_name,std::unique_ptr<ParamBin>(new ParamBin));
+								parents.push_back(bin->children[group_name].get());
+						}
+						else
+                parents.back()->set(NamedParam<std::string>(name,val));
 				} else {
 						throw;
 				}
@@ -346,7 +348,6 @@ void ParamBin::loadParamFile(std::string FILE)
 		} catch(...){
         throw ParamBinFileReadException(FILE);
 		}
-
 }
 
 void ParamBin::printBin(std::ostream& os) const{

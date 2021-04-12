@@ -1,34 +1,34 @@
 
 CoordinateDependency:                 T               
-PropagationDistance:                  100.0 [cm]       
+PropagationDistance:                  100.0 
 SimulationName:                       Air Medium
 String Parameter:                     "String with commas,,,"
 
-GRID      
+GRID: 
 
-  T       
+  T:      
 
-    GridSize:                           16.0 [tp]        
+    GridSize:                           16.0 
     NumberPoints:                       2048            
 
-INPUT     
+INPUT:    
 
   Intensity:                            5.0e16          
 
-  T       
+  T:     
 
-    CarrierWavelength:                  0.4 [mum],0.5 [mum],0.6 [mum]
-    PulseWidth(tp):                     20.0 [fs]           
+    CarrierWavelength:                  [0.4,0.5,0.6]
+    PulseWidth(tp):                     20.0 
     Shape:                              gauss           
 
-MEDIUM    
+MEDIUM:
 
   ChiTable:                             airchi.tab      
-  WavelengthMax[mum]:                   18.5            
-  WavelengthMin[mum]:                   0.3             
+  WavelengthMax:                        18.5            
+  WavelengthMin:                        0.3             
   n2:                                   3.2e-23         
 
-REPORT    
+REPORT:    
 
   Dispersion:                           on              
   MaxFileReports:                       500             
@@ -36,7 +36,7 @@ REPORT
   StepsPerOutput1D:                     4               
   StepsPerOutput2D:                     20              
 
-SOLVER    
+SOLVER:
 
   DecrFactor:                           0.9             
   EpsAbs:                               1.0e-4          
