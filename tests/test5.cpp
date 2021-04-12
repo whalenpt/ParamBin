@@ -12,99 +12,42 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 #include <parambin.hpp>
 
 //------------------------------------------------------------------------------
 
 int main(int argc,char* argv[])
 {
-  std::cout << "Parameter scalings are allowed for double types.\n"
-            << "Scales are placed in brackets ([...]) and can be simple SI scalings\n"
-            << "or other double typed parameters.\n";
 
   ParamBin bin;
-  bin << NamedParam<std::string>("var1","100.0 [cm]");
-  bin << NamedParam<std::string>("var2","String with commas, brackets([blah]), and parenthesis");
-  bin << NamedParam<std::string>("var3","0.4 [mum], 0.5 [mum], 0.6 [mum]");
-  bin << NamedParam<int>("A",1) << NamedParam<int>("B",2);
+  std::cout << "Alias names can be put in parenthesis." << std::endl;
+  // Alias names can be placed in parenthesis
+  bin << NamedParam<int>("LongVeryLongLongName (short name)",1000);
+  bin << NamedParam<int>("A",10) << NamedParam<int>("B",20) \
+      << NamedParam<int>("C",30) << NamedParam<int>("D",40); 
+  std::cout << bin << std::endl << std::endl;
+  std::cout << "Access LongVeryLongLongName via short name. " << std::endl;
+  std::cout << "LongVeryLongLongName = " << bin.getInt("short name") << std::endl;
+
+  ParamBin second_bin;
+  second_bin << NamedParam<double>("Var1 (v1)",1.6) << NamedParam<double>("Var2",2.4) \
+             << NamedParam<double>("Var3",3.2) << NamedParam<double>("Var4",3.6);
+
+  std::unique_ptr<ParamBin> third_bin(new ParamBin);
+  *third_bin << NamedParam<char>("3_1",'X') << NamedParam<char>("3_2",'Y') \
+            << NamedParam<char>("3_3 (v3)",'Z'); 
+
+
+  second_bin.setBin("THIRD BIN",std::move(third_bin));
+  bin.setBin("SECOND BIN",second_bin);
 
   std::cout << bin << std::endl << std::endl;
-  std::cout << "var1 = " << bin.getDbl("var1") << std::endl;
-  std::cout << "var2 = " << bin.getStr("var2") << std::endl;
-  auto dbl_vec = bin.getDblVec("var3");
-  std::cout << "var3 = ";
-  for(auto v : dbl_vec)
-      std::cout << v << ' ';
-  std::cout << std::endl;
+  // Alias' are searched for recursively in children of the parent,
+  // effectively this means the user can gain access to these values from the top of the tree.
 
-  // operator << equivalent to bin.set(name,val)
-  bin << NamedParam<double>("var4",3.0);
-  std::cout << "var4 = " << bin.getDbl("var4") << std::endl;
-
-  std::cout << "Setting var4 to a new value..." << std::endl;
-  bin << NamedParam<double>("var4",4.0);
-  std::cout << "var4 = " << bin.getDbl("var4") << std::endl;
-
-  bin << NamedParam<std::vector<int>>("var5",{0,1,2,3});
-  auto int_vec = bin.getIntVec("var5");
-  std::cout << "Heres the int vector [0,1,2,3].\n";
-  for(auto item : int_vec)
-      std::cout << item << ' ';
-  std::cout << std::endl;
-
-
-  std::cout << std::endl << std::endl;
-  std::cout << "Each parameter can have an alternative alias name. This parementers value\n"
-            << "can either be accessed through the alias or the primary name, they both\n"
-            << "return the same value when used with a get function. There are important\n" 
-            << "distinction between the two though: values may only be set through the primary\n"
-            << "name. Using a set function with an alias will create a new primary name,\n"
-            << "something that, generally, is probably not intended. Secondly, alias names\n" 
-            << "have expanded access to values when it comes to the tree structure of a bin.\n"
-            << "The alias values are found via a recursive search from the root level bin\n"
-            << "and therefore they do not need to be accessed through subbins as with primary names.\n"
-            << "For parameters that are scaled by other parameters, short names and global access\n" 
-            << "are convenient as can be seen in the GridSize example below.\n";
-  std::cout << std::endl << std::endl;
-
-  ParamBin grid;
-  ParamBin T_group;
-  T_group << NamedParam<std::string>("GridSize","16.0 [tp]");
-  T_group << NamedParam<int>("NumberPoints",2048);
-
-  T_group.setAlias("NumberPoints","nt");
-
-  grid << NamedBin("T",T_group);
-  bin << NamedBin("GRID",grid);
-
-  ParamBin input;
-  input << NamedParam<double>("Intensity",5.0e16);
-
-  ParamBin tin;
-  tin.set("CarrierWavelength","0.4 [mum], 0.5 [mum], 0.6 [mum]");
-  tin.set("PulseWidth (tp)","20.0 [fs]");
-
-  input << NamedBin("T",tin);
-  bin << NamedBin("INPUT",input);
-
-  std::cout << bin << std::endl << std::endl;
-  std::cout << "PulseWidth(tp) = " << bin.getDbl("tp") << std::endl;
-  std::cout << "GridSize = " <<  bin.getBin("GRID").getBin("T").getDbl("GridSize") << std::endl;
-  std::cout << "NumberPoints(nt) = " << bin.getInt("nt") << std::endl;
-  std::cout << "Its also possible to access NumberPoints through nt in the INPUT bin\n"
-            << "even though GRID is not a subbin of INPUT. They have the same root bin.\n";
-  std::cout << "NumberPoints(nt) = " << bin.getBin("INPUT").getInt("nt");
-
-
-  bin.clear();
-  bin.set("A","10 [B]");
-  bin.set("B","15 [C]");
-  bin.set("C","2 [D]");
-  bin.set("D","3");
-
-  std::cout << bin << std::endl << std::endl;
-  std::cout << "A = " << bin.getDbl("A") << std::endl;
-
+  std::cout << "Var1 (v1) = " << bin.getDbl("v1") << std::endl; 
+  std::cout << "3_3 (v3) = " << bin.getChar("v3") << std::endl; 
 
 
   return 0;
