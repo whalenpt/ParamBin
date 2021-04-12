@@ -36,7 +36,7 @@ int main(int argc,char* argv[])
   ParamBin group2;
 
   group2.set("var1",5.3e8);
-//  group2.set("var2","1,2,3");
+  group2.set("var2","1,2,3");
   std::cout << input << std::endl << std::endl;
 //
 //  ParamBin group3;

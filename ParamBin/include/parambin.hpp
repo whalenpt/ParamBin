@@ -233,6 +233,7 @@ std::string convertToString(T val)
     std::string valstr = stm.str();
     std::size_t found_dot = valstr.find_last_of(".");
     std::size_t found_e = valstr.find_last_of("e");
+		std::cout << "CONVERT TO STRING: " << val << std::endl;
     if(found_dot != std::string::npos){
         std::string substr = valstr.substr(found_dot+1,found_e - found_dot - 1);
         std::string replace_str(substr); 
