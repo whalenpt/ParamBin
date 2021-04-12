@@ -24,7 +24,10 @@ int main(int argc,char* argv[])
   input.set("var2",10);
   input.set("var3","string");
   input.setBool("var4",true);
-  input.set("var5",1.8);
+  input.set("var5",1.8600);
+  input.set("var6",0.000345);
+  input.set("var7",100000.00);
+  input.set("var8",100005.00001);
 
   char val = 'a';
   std::string val2 = "second value";
@@ -37,14 +40,15 @@ int main(int argc,char* argv[])
 
   group2.set("var1",5.3e8);
   group2.set("var2","1,2,3");
+
+  ParamBin group3;
+  group3.set("var1",1);
+  group3.set("var2","subsubgroup");
+
+  group2.set("GROUP3",group3);
+  input.set("GROUP2",group2);
+
   std::cout << input << std::endl << std::endl;
-//
-//  ParamBin group3;
-//  group3.set("var1",1);
-//  group3.set("var2","subsubgroup");
-//
-//  group2.set("GROUP3",group3);
-//  input.set("GROUP2",group2);
 //
 //  std::vector<std::string> str_vals;
 //  str_vals.push_back("first val");
