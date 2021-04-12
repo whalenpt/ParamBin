@@ -238,9 +238,9 @@ void ParamBin::scanYAML(std::ifstream& fin)
     {
 				std::vector<std::string> parsed_line_feed = pw::parseString(line_feed,':');
 				if(parsed_line_feed.size() == 0)
-						continue;
+						throw std::exception(); 
 				else if(parsed_line_feed.size() == 1){
-						throw;
+						throw std::exception(); 
 				} else if(parsed_line_feed.size() == 2){
 						std::string name(pw::eatWhiteSpace(parsed_line_feed[0]));
 						std::string val(pw::eatWhiteSpace(parsed_line_feed[1]));
@@ -263,7 +263,7 @@ void ParamBin::scanYAML(std::ifstream& fin)
 						else
                 parents.back()->set(NamedParam<std::string>(name,val));
 				} else {
-						throw;
+						throw std::exception(); 
 				}
     }
 }
@@ -286,6 +286,7 @@ void ParamBin::loadParamFile(std::string FILE)
 		try{
 		  	scanYAML(fin);
 		} catch(...){
+				fin.close();
         throw ParamBinFileReadException(FILE);
 		}
 }

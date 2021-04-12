@@ -4,7 +4,7 @@
  *    Email: whalenpt@gmail.com
  *    Status: Development
  *    Date: 04/09/2021
- *    Description: "Testing of ParamBin class."
+ *    Description: "Reads a ParamBin file."
  *
 ------------------------------------------------------------------------------*/
 
@@ -21,15 +21,17 @@ int main(int argc,char* argv[])
 {
   if(argc > 1){
     std::cout << "Filename: " << argv[1] << std::endl;
-    ParamBin input(argv[1]);
-    std::cout << input << std::endl;
-    if(input.size("SimulationName") == 1)
-        std::cout << "Simulation Name:" << input.getStr("SimulationName") << std::endl;
-    else if(input.size("SimulationName") == 2){
-        std::vector<std::string> vals = input.getStrVec("SimulationName");
-        for(int i = 0; i < vals.size(); i++)
-            std::cout << "Sim Name[" << i << "] =" << vals[i] << std::endl;
-    }
+    try{
+      ParamBin input(argv[1]);
+			std::cout << "Here is your ParamBin Printed!!!" << std::endl << std::endl;
+			std::cout << input << std::endl;
+		}
+		catch(ParamBinException& e){
+      std::cout << "A ParamBinException was caught. Here's the message:" << std::endl;
+      std::cout << e.what() << std::endl;
+		} catch(...) {
+			std::cout << "An exception was caught. Failed to read the file." << std::endl;
+		}
   }
   else 
   {
