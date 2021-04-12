@@ -339,12 +339,12 @@ void ParamBin::loadParamFile(std::string FILE)
     if(!fin.is_open())
     {
         fin.clear();
-        throw ParamBinFileException(FILE);
+        throw ParamBinFileOpenException(FILE);
     }
 		try{
 		  	scanYAML(fin);
 		} catch(...){
-        throw ParamBinFileException(FILE);
+        throw ParamBinFileReadException(FILE);
 		}
 
 }

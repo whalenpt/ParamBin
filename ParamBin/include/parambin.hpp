@@ -40,13 +40,27 @@ class ParamBinKeyException : public ParamBinException
 				std::string msg;
 };
 
-class ParamBinFileException : public ParamBinException
+class ParamBinFileOpenException : public ParamBinException
 {
     public:
-        explicit ParamBinFileException(const std::string& nm) {
+        explicit ParamBinFileOpenException(const std::string& nm) {
             msg = "Failed to open the ParamBin parameter file " + nm + ".";
         }
-        ~ParamBinFileException() {};
+        ~ParamBinFileOpenException() {};
+        const char* what() const noexcept override {
+            return msg.c_str();
+        }
+    private:
+				std::string msg;
+};
+
+class ParamBinFileReadException : public ParamBinException
+{
+    public:
+        explicit ParamBinFileReadException(const std::string& nm) {
+            msg = "Failed to read the ParamBin parameter file " + nm + ".";
+        }
+        ~ParamBinFileReadException() {};
         const char* what() const noexcept override {
             return msg.c_str();
         }
