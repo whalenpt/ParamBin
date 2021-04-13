@@ -15,6 +15,8 @@ ParamBin class is designed for easy storage and access to parameters
 that fit into a tree structure. 
 
 ```cpp
+#include <parambin.hpp>
+#include <string>
 int main()
 {
 	ParamBin bin;
@@ -28,7 +30,7 @@ int main()
 	std::vector<std::string> str_vals;
 	str_vals.push_back("first val");
 	str_vals.push_back("second val");
-	subbin.set("strvec",str_vals) // set a vector (of strings)
+	subbin.set("strvec",str_vals); // set a vector (of strings)
 	bin.set("SUBBIN",subbin); // set a subbin of bin
 
 	std::cout << bin << std::endl; // print the bin
@@ -37,7 +39,7 @@ int main()
 	int var2 = bin.getInt("var2"); // access an int
 	std::string var3 = bin.getStr("var3"); // access a string
 	ParamBin subbin_access = bin.getBin("SUBBIN"); // access a subbin
-	std::vector<std::string> strvec_access = bin.getBin("SUBBIN").getStrVec("strvec");
+	std::vector<std::string> strvec_access = bin.getBin("SUBBIN").getStrVec("strvec"); // access a vector
 }
 ```
 
@@ -51,6 +53,10 @@ cd build
 make -j4
 cmake --install .
 ```
+A program using ParamBin will need to link to both the parambin and pwutils libraries
+(or their static counterparts parambin_static and pwutils_static). After installation,
+these libraries can be found in the ${CMAKE_INSTALL_LIBDIR} directory. The usage example
+is shown in the UseParamBin subdirectory.
 
 # License #
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE.txt) file for details
