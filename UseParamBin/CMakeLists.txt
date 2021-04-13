@@ -22,11 +22,20 @@ else()
 endif()
 
 message(STATUS "PARAMBIN_LIB: ${PARAMBIN_LIB}")
-message(STATUS "PWUTILS_LIB: ${PARAMBIN_LIB}")
+message(STATUS "PWUTILS_LIB: ${PWUTILS_LIB}")
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE 
 	${PARAMBIN_LIB}
 	${PWUTILS_LIB}
 )
+target_include_directories(${PROJECT_NAME} PUBLIC
+	/usr/local/include
+	/usr/local/include/pwutils
+)
+
+
+
+
+
 
