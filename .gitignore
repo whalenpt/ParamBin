@@ -6,5 +6,6 @@
 *.bat
 *.swap
 .cache
+*.swo
 
 
