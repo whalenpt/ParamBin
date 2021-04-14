@@ -13,7 +13,7 @@
 #include <iterator>
 #include <exception>
 #include <memory>
-#include <pwutils/pwstrings.h>
+#include "pwutils/pwstrings.h"
 
 std::ifstream& readNextLine(std::ifstream& fin,std::string& line_feed);
 void lineToNameVal(const std::string& line_feed,std::string& name,std::string& vals);

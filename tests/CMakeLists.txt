@@ -17,12 +17,6 @@ if(WIN32)
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:parambin> ${CMAKE_CURRENT_BINARY_DIR}
 			COMMENT "Copy parambin dll file to ${CMAKE_CURRENT_BINARY_DIR} directory" VERBATIM
 		)
-
-		add_custom_command(TARGET ${ARG}
-			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:pwutils> ${CMAKE_CURRENT_BINARY_DIR}
-			COMMENT "Copy pwutils dll file to ${CMAKE_CURRENT_BINARY_DIR} directory" VERBATIM
-		)
 	endforeach()
 endif()
 
