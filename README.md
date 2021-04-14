@@ -53,10 +53,8 @@ cd build
 make -j4
 cmake --install .
 ```
-A program using ParamBin will need to link to both the parambin and pwutils libraries
-(or their static counterparts parambin_static and pwutils_static). After installation,
-these libraries can be found in the ${CMAKE_INSTALL_LIBDIR} directory. The usage example
-is shown in the UseParamBin subdirectory.
+A program using ParamBin will need to link to the parambin library
+(or its static counterpart parambin_static). 
 
 # License #
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE.txt) file for details
