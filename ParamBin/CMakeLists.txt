@@ -2,7 +2,6 @@
 cmake_minimum_required(VERSION 3.19.1)
 set(CMAKE_CXX_STANDARD 17)
 
-set(THIS parambin)
 set(SRC_FILES
 	src/parambin.cpp
 	src/pwutils/pwstrings.cpp
@@ -12,32 +11,67 @@ set(INCLUDE_FILES
 	include/pwutils/pwstrings.h
 )
 
-add_library(${THIS} SHARED ${SRC_FILES} ${INCLUDE_FILES})
-target_include_directories(${THIS} PUBLIC 
-	${CMAKE_CURRENT_SOURCE_DIR}/include
+add_library(parambin SHARED ${SRC_FILES} ${INCLUDE_FILES})
+add_library(ParamBin::parambin ALIAS parambin)
+target_include_directories(parambin PUBLIC 
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
 	PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/include/pwutils
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/pwutils>
+	$<INSTALL_INTERFACE:include/pwutils>
 )
 
-set(THIS_STATIC parambin_static)
-add_library(${THIS_STATIC} STATIC ${SRC_FILES} ${INCLUDE_FILES})
-target_include_directories(${THIS_STATIC} PUBLIC 
-	${CMAKE_CURRENT_SOURCE_DIR}/include
+add_library(parambin_static STATIC ${SRC_FILES} ${INCLUDE_FILES})
+add_library(ParamBin::parambin_static ALIAS parambin_static)
+target_include_directories(parambin_static PUBLIC 
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
 	PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/include/pwutils
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/pwutils>
+	$<INSTALL_INTERFACE:include/pwutils>
 )
 
-include(GNUInstallDirs)
-set_target_properties(${THIS} ${THIS_STATIC} PROPERTIES
+
+set_target_properties(parambin parambin_static PROPERTIES
 	VERSION ${PROJECT_VERSION}
 	SOVERSION 0
 	PUBLIC_HEADER "${INCLUDE_FILES}"
 )
 
-install(TARGETS ${THIS} ${THIS_STATIC}
+include(GNUInstallDirs)
+install(TARGETS parambin parambin_static
+	EXPORT ParamBinTargets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} 
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BIDDIR}
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+install(EXPORT ParamBinTargets
+	FILE ParamBinTargets.cmake
+	NAMESPACE ParamBin::
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ParamBin
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file( 
+	${CMAKE_CURRENT_SOURCE_DIR}/cmake/ParamBinConfig.cmake.in
+	${CMAKE_CURRENT_BINARY_DIR}/cmake/ParamBinConfig.cmake
+	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ParamBin
+	PATH_VARS CMAKE_INSTALL_LIBDIR
+)
+
+write_basic_package_version_file(
+	${CMAKE_CURRENT_BINARY_DIR}/cmake/ParamBinConfigVersion.cmake
+	VERSION ${PROJECT_VERSION}
+	COMPATIBILITY AnyNewerVersion
+)
+
+install(
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/ParamBinConfig.cmake
+	      ${CMAKE_CURRENT_BINARY_DIR}/cmake/ParamBinConfigVersion.cmake
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ParamBin
+)
+
 
 
