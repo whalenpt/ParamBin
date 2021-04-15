@@ -54,7 +54,8 @@ make -j4
 cmake --install .
 ```
 A program using ParamBin will need to link to the parambin library
-(or its static counterpart parambin_static). 
+(or its static counterpart parambin_static). See the UseParamBin folder
+[README](./UseParamBin/README.md) for an example.
 
 # License #
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE.txt) file for details
