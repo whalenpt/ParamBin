@@ -16,14 +16,14 @@ set(INCLUDE_FILES
 add_library(parambin SHARED ${SRC_FILES} ${INCLUDE_FILES})
 add_library(ParamBin::parambin ALIAS parambin)
 target_include_directories(parambin PUBLIC 
-    $<BUILD_INTERFACE:${ParamBin_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${ParamBin_SOURCE_DIR}/include/ParamBin>
 	$<INSTALL_INTERFACE:include>
 )
 
 add_library(parambin_static STATIC ${SRC_FILES} ${INCLUDE_FILES})
 add_library(ParamBin::parambin_static ALIAS parambin_static)
 target_include_directories(parambin_static PUBLIC 
-    $<BUILD_INTERFACE:${ParamBin_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${ParamBin_SOURCE_DIR}/include/ParamBin>
 	$<INSTALL_INTERFACE:include>
 )
 
@@ -55,7 +55,7 @@ include(GNUInstallDirs)
 
 configure_package_config_file( 
     ${ParamBin_SOURCE_DIR}/cmake/ParamBinConfig.cmake.in
-	${ParamBin_BINARY_DIR}/cmake/ParamBinConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/ParamBinConfig.cmake
 	INSTALL_DESTINATION lib/cmake/ParamBin
 	PATH_VARS CMAKE_INSTALL_LIBDIR
 )
@@ -67,8 +67,8 @@ write_basic_package_version_file(
 )
 
 install(
-	FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/ParamBinConfig.cmake
-	      ${CMAKE_CURRENT_BINARY_DIR}/cmake/ParamBinConfigVersion.cmake
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/ParamBinConfig.cmake
+	      ${CMAKE_CURRENT_BINARY_DIR}/ParamBinConfigVersion.cmake
 	DESTINATION lib/cmake/ParamBin
 )
 

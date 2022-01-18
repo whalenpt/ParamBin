@@ -1,10 +1,9 @@
 
-#include <parambin.hpp>
+#include <ParamBin/parambin.hpp>
 #include <string>
 
 int main()
 {
-
 	ParamBin bin;
 	bin.set("var1",1.3); // set a float
 	bin.set("var2",10); // set an int

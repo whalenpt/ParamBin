@@ -15,7 +15,7 @@ ParamBin class is designed for easy storage and access to parameters
 that fit into a tree structure. 
 
 ```cpp
-#include <parambin.hpp>
+#include <ParamBin/parambin.hpp> // version<0.1 -> #include<parambin.hpp>
 #include <string>
 int main()
 {
