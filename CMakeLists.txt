@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19.1)
 set(CMAKE_CXX_STANDARD 17)
 
 project(ParamBin VERSION 0.0.3 DESCRIPTION "Container for parameters")
+
 option(PARAMBIN_TEST "Build ParamBin tests" OFF)
 
 add_subdirectory(src)

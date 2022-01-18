@@ -8,7 +8,7 @@
 #include <filesystem>
 
 #include "parambin.hpp"
-#include "pwutils/pwstrings.h"
+#include "pwstrings.h"
 
 template<>
 void ParamBin::get(const std::string& name,double& val) const
