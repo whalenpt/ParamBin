@@ -4,12 +4,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(SRC_FILES
 	parambin.cpp
-	pwstrings.cpp
+	parambinstrings.cpp
 )
 set(INCL_DIR "${ParamBin_SOURCE_DIR}/include/ParamBin")
 
 set(INCLUDE_FILES
-    ${INCL_DIR}/pwstrings.h
+    ${INCL_DIR}/parambinstrings.h
     ${INCL_DIR}/parambin.hpp
 )
 

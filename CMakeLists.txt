@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19.1)
 set(CMAKE_CXX_STANDARD 17)
 
-project(ParamBin VERSION 0.1.0 DESCRIPTION "Container for parameters")
+project(ParamBin VERSION 0.1.1 DESCRIPTION "Container for parameters")
 
 option(PARAMBIN_TESTS "Build ParamBin tests" OFF)
 

@@ -1,13 +1,12 @@
 
-
 #include <string>
 #include <vector>
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
-#include "pwstrings.h"
+#include "parambinstrings.h"
 
-namespace pw{
+namespace pwbin{
 
 // Check if string is whitespace
 bool isWhitespace(const std::string& str){

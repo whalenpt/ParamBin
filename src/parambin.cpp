@@ -6,8 +6,8 @@
 #include <map>
 #include <set>
 #include <filesystem>
-#include "ParamBin/parambin.hpp"
-#include "ParamBin/parambinstrings.h"
+#include "parambin.hpp"
+#include "parambinstrings.h"
 
 template<>
 void ParamBin::get(const std::string& name,double& val) const

@@ -1,12 +1,12 @@
 
-#ifndef PWSTRINGS_H_ 
-#define PWSTRINGS_H_
+#ifndef PARAMBINSTRINGS_H_ 
+#define PARAMBINSTRINGS_H_
 
 #include<vector>
 #include<string>
 #include<iostream>
 
-namespace pw{
+namespace pwbin{
 
 //  using namespace std;
   std::string trimString(const std::string& str,std::string delim = " \t");
